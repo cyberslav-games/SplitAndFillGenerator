@@ -22,7 +22,7 @@ public class SplitAndFillGenerator implements MapGenerator
         _strategyRegistry.add(new FloorStrategy());
         _strategyRegistry.add(new PyramidStrategy());
         _strategyRegistry.add(new JumpPadStrategy());
-        _strategyRegistry.add(new PlatformTreeStrategy());
+//        _strategyRegistry.add(new PlatformTreeStrategy());
 
         // calculate min strategy size
         for (FillStrategy strategy : _strategyRegistry)
@@ -38,8 +38,6 @@ public class SplitAndFillGenerator implements MapGenerator
         _minStrategyWidth = Math.max(
                 _minStrategyWidth,
                 get("GRID_STEP") * get("MIN_REGION_WIDTH_CELLS"));
-
-        System.out.printf("_minStrategyHeight = %f  _minStrategyWidth = %f\n", _minStrategyHeight, _minStrategyWidth);
     }
 
 
@@ -77,17 +75,6 @@ public class SplitAndFillGenerator implements MapGenerator
         Collection<MapComponent> mapComponents = _mapComponents;
         _mapComponents = null;
         return mapComponents;
-    }
-
-
-    public double getMinRegionWidth() throws MapGeneratorException
-    {
-        return _minStrategyWidth;
-    }
-
-    public double getMinRegionHeight() throws MapGeneratorException
-    {
-        return _minStrategyHeight;
     }
 
 
@@ -334,12 +321,6 @@ public class SplitAndFillGenerator implements MapGenerator
         DirectedPoint enterPoint = regionNode._region.getEnterPoint();
         DirectedWindow exitWindow = regionNode._region.getExitWindow();
 
-        if (enterPoint.getDirection() == exitWindow.getDirection()
-                && !enterPoint.isOnHorizontalEdge()
-//                && toGrid(enterPoint.getPosition()) == toGrid(exitWindow.getEndPosition())
-                )
-            return false;
-
         List<SplitVariant> variants = getSplitVariants(regionNode._region);
 
         for (SplitVariant variant : variants)
@@ -491,7 +472,7 @@ public class SplitAndFillGenerator implements MapGenerator
         //... make common vertical range
         double verticalWindowSize = get("V_WINDOW_SIZE");
         double verticalRangeStart = MIN_STRATEGY_SIZE.getY();
-        double verticalRangeEnd = region.getRect().getHeight() - verticalWindowSize;
+        double verticalRangeEnd = region.getRect().getHeight() - MIN_STRATEGY_SIZE.getY();
 
         //if enter point is on vertical side try split below and above enter position
         if (Point.isHorizontalDirection(region.getEnterPoint().getDirection()))
@@ -509,7 +490,7 @@ public class SplitAndFillGenerator implements MapGenerator
                     false);
 
             // try split below
-            double secondVertRangeStart = region.getEnterPoint().getPosition() + GRID_STEP;
+            double secondVertRangeStart = region.getEnterPoint().getPosition() + get("BORDER_SIZE");
             secondVertRangeStart = Math.max(secondVertRangeStart, verticalRangeStart);
             double secondVertRangeEnd = verticalRangeEnd;
 

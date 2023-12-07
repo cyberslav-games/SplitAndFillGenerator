@@ -16,6 +16,6 @@ public interface MapGenerator
             DirectedRegion region,
             DirectedWindow enterWindow) throws MapGeneratorException;
 
-    double getMinRegionWidth() throws MapGeneratorException;
-    double getMinRegionHeight() throws MapGeneratorException;
+//    double getMinRegionWidth() throws MapGeneratorException;
+//    double getMinRegionHeight() throws MapGeneratorException;
 }
