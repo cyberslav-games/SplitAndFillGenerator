@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.cyberslav.splitandfillgenerator.component.MapComponent;
 import com.cyberslav.splitandfillgenerator.component.PlatformComponent;
 
@@ -21,8 +22,11 @@ public class DebugRenderer
     {
         batch.end();
 
+        ScreenUtils.clear(_backgroundColor);
+
+        float scale = 1.0f;
         Matrix4 matrix = new Matrix4(batch.getProjectionMatrix());
-        matrix.scale(0.1f, 0.1f, 1f);
+        matrix.scale(scale, scale, 1f);
         _renderer.setProjectionMatrix(matrix);
 //        _renderer.setProjectionMatrix(batch.getProjectionMatrix());
 
@@ -61,6 +65,10 @@ public class DebugRenderer
 
     // data
     private final ShapeRenderer _renderer = new ShapeRenderer();
-    private final Color _platformLineColor = Color.DARK_GRAY;
-    private final Color _platformFillColor = Color.LIGHT_GRAY;
+    private final Color _backgroundColor = new Color(0x2b2b2bff);
+    private final Color _platformLineColor = Color.LIGHT_GRAY;
+    private final Color _platformFillColor = Color.GRAY;
+//    private final Color _backgroundColor = Color.WHITE;
+//    private final Color _platformLineColor = Color.DARK_GRAY;
+//    private final Color _platformFillColor = Color.LIGHT_GRAY;
 }

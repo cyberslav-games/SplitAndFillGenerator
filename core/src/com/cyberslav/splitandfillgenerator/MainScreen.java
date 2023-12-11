@@ -18,6 +18,8 @@ public class MainScreen implements Screen, InputProcessor
     // public
     public MainScreen()
     {
+        Gdx.input.setInputProcessor(this);
+
         // create scene
         OrthographicCamera stageCamera = new OrthographicCamera(
                 Gdx.graphics.getWidth(),
@@ -48,29 +50,7 @@ public class MainScreen implements Screen, InputProcessor
         _stage.addActor(table);
 
         // generate level
-        Rectangle rect = new Rectangle(
-                2.0 * getStep(),
-                2.0 * getStep(),
-                toGrid(10000),
-                toGrid(5000));
-
-        double enterPos = toGrid(500);
-        double exitPos = toGrid(250);
-        double windowSize = WorldProperties.getInstance().get("V_WINDOW_SIZE");
-
-        DirectedRegion region = new DirectedRegion(
-                rect,
-                new DirectedPoint(rect, Point.Direction.Right, enterPos),
-                new DirectedWindow(rect, Point.Direction.Right, exitPos - windowSize, exitPos));
-
-        DirectedWindow enterWindow = new DirectedWindow(
-                rect,
-                Point.Direction.Right,
-                enterPos - windowSize,
-                enterPos);
-
-        _components = _generator.generateRegion(region, enterWindow);
-        _rendererActor.setComponents(_components);
+        generate();
     }
 
 
@@ -80,8 +60,6 @@ public class MainScreen implements Screen, InputProcessor
 
     @Override public void render(float delta)
     {
-        ScreenUtils.clear(1.0f, 1.0f, 1.0f, 1);
-
         _stage.act();
         _stage.draw();
     }
@@ -97,6 +75,15 @@ public class MainScreen implements Screen, InputProcessor
     //.. InputProcessor
     @Override public boolean keyDown(int keycode)
     {
+        switch (keycode)
+        {
+            case Input.Keys.R:
+            {
+                generate();
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -111,6 +98,39 @@ public class MainScreen implements Screen, InputProcessor
 
 
     // private
+    private void generate()
+    {
+        double roomWidth = toGrid(1000);
+        double roomHeight = toGrid(600);
+        double enterPos = roomHeight;
+        double exitPos = roomWidth - WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
+//        double exitPos = toGrid(250);
+        double vWindowSize = WorldProperties.getInstance().get("V_WINDOW_SIZE");
+        double hWindowSize = WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
+
+        Rectangle rect = new Rectangle(
+                2.0 * getStep(),
+                2.0 * getStep(),
+                roomWidth,
+                roomHeight);
+
+        DirectedRegion region = new DirectedRegion(
+                rect,
+                new DirectedPoint(rect, Point.Direction.Right, enterPos),
+                new DirectedWindow(rect, Point.Direction.Up, exitPos - hWindowSize, exitPos + hWindowSize));
+//                new DirectedWindow(rect, Point.Direction.Right, exitPos - windowSize, exitPos));
+
+        DirectedWindow enterWindow = new DirectedWindow(
+                rect,
+                Point.Direction.Right,
+                enterPos - vWindowSize,
+                enterPos);
+
+        _components = _generator.generateRegion(region, enterWindow);
+        _rendererActor.setComponents(_components);
+    }
+
+
     private double getStep()
     {
         return WorldProperties.getInstance().get("GRID_STEP");

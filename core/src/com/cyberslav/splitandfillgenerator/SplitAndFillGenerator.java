@@ -18,8 +18,8 @@ public class SplitAndFillGenerator implements MapGenerator
     public SplitAndFillGenerator() throws MapGeneratorException
     {
         // create strategies
+//        _strategyRegistry.add(new FloorStrategy());
         _strategyRegistry.add(new GridStrategy());
-        _strategyRegistry.add(new FloorStrategy());
         _strategyRegistry.add(new PyramidStrategy());
         _strategyRegistry.add(new JumpPadStrategy());
 //        _strategyRegistry.add(new PlatformTreeStrategy());
@@ -57,6 +57,9 @@ public class SplitAndFillGenerator implements MapGenerator
     {
         // choose init strategy
         FillStrategy initStrategy = findInitStrategy(region);
+
+        if (initStrategy == null)
+            throw new MapGeneratorException("Can't find init strategy for region");
 
         // start recursion
         _mapComponents = new ArrayList<>();
@@ -98,6 +101,7 @@ public class SplitAndFillGenerator implements MapGenerator
         if (enterWindow.isOnHorizontalEdge())
             return start <= pos && pos <= end - width;
         else
+//            return start <= pos && pos <= end - height;   // TODO: !!!
             return start + height <= pos && pos <= end;
     }
 
@@ -331,6 +335,7 @@ public class SplitAndFillGenerator implements MapGenerator
     }
 
 
+    // TODO: убрать этот метод
     private ArrayList<FillStrategy> chooseStrategies()
     {
         ArrayList<FillStrategy> strategies = new ArrayList<>();

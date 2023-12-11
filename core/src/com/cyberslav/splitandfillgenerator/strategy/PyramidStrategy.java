@@ -45,7 +45,7 @@ public class PyramidStrategy implements FillStrategy
         if (exitWindow.isOnHorizontalEdge())
             endLocalPoint.setX(
                     Math.min(
-                            endLocalPoint.getX(),
+                            endLocalPoint.getX() - getHorizontalStep(),
                             rect.getWidth() - getHorizontalStep()));
 
         createEnterWindowsForVertex(
@@ -79,11 +79,12 @@ public class PyramidStrategy implements FillStrategy
         if (exitWindow.isOnHorizontalEdge())
         {
             double enterXPos = enterPoint.toLocalPoint(true).getX();
-            double leftDistance = enterXPos - exitWindow.getStartPosition();
-            double rightDistance = exitWindow.getEndPosition() - getPlayerWidth() - enterXPos;
+            double leftDistance = Math.abs(enterXPos - exitWindow.getStartPosition());
+            double rightDistance = Math.abs(enterXPos - (exitWindow.getEndPosition() - getHorizontalStep()));
+
             double exitPosition
                     = (leftDistance < rightDistance)
-                    ? exitWindow.getEndPosition() - getPlayerWidth()
+                    ? exitWindow.getEndPosition() - getHorizontalStep()
                     : exitWindow.getStartPosition();
 
             exitPosition = Math.min(exitPosition, rect.getWidth() - getHorizontalStep());
@@ -102,7 +103,7 @@ public class PyramidStrategy implements FillStrategy
         double vertexX = toGrid(rawVertex.getX());
         double vertexY = toGrid(rawVertex.getY());
 
-        if (region.getRect().getHeight() - vertexY < get("JUMP_HEIGHT"))
+        if (region.getRect().getHeight() - vertexY < getVerticalStep())
         {
             SpawnRegionComponent.addSpawnRegionInRange(
                     0,
@@ -120,21 +121,12 @@ public class PyramidStrategy implements FillStrategy
         else if (!region.getExitWindow().isOnHorizontalEdge())
             vertexY = Math.max(vertexY, WorldProperties.getInstance().get("V_WINDOW_SIZE"));
 
-        vertexX = Math.min(vertexX, rect.getWidth() - getHorizontalStep());
-
         Point vertex = new Point(vertexX, vertexY); // rounded vertex position in rect local coordinates
 
         // crate bottom platform
-        final double bottomPosVariant1 = toGrid(0.5 *(vertex.getY() + rect.getHeight()));
-        final double bottomPosVariant2 = toGrid(
-                region.getEnterPoint().toLocalPoint(true).getY()
-                + getVerticalStep());
-        double bottomPos = Math.min(bottomPosVariant1, bottomPosVariant2);
-        bottomPos = Math.max(
-                bottomPos,
-                toGrid(region.getEnterPoint().toLocalPoint(true).getY()));
-        bottomPos = Math.max(bottomPos, vertex.getY());
-        bottomPos = Math.min(bottomPos, rect.getHeight());
+        final double bottomPos = Math.max(
+                region.getEnterPoint().toLocalPoint(true).getY(),
+                vertexY);
 
         if (bottomPos <= rect.getHeight() - getGridStep())
             addPlatform(
@@ -157,21 +149,17 @@ public class PyramidStrategy implements FillStrategy
                 region.getEnterPoint().toAnotherRect(fixedRect),
                 region.getExitWindow().toAnotherRect(fixedRect));
 
-        //... make central platforms
-        double xPos = vertex.getX();
-        double yPos = vertex.getY();
+        //... make central platform
+        double vertexPosX = vertex.getX();
+        double vertexPosY = vertex.getY();
 
-        if (xPos < rect.getWidth() && yPos < PYRAMID_BOTTOM)
+        if (vertexPosX < rect.getWidth() && vertexPosY < PYRAMID_BOTTOM)
         {
-            double platWidth = Math.min(xStep, rect.getWidth() - xPos);
-            double platHeight = PYRAMID_BOTTOM - yPos;
+            double platWidth = Math.min(xStep, rect.getWidth() - vertexPosX);
+            double platHeight = PYRAMID_BOTTOM - vertexPosY;
 
-            addPlatform(components, rect, xPos, yPos, platWidth, platHeight);
+            addPlatform(components, rect, vertexPosX, vertexPosY, platWidth, platHeight);
         }
-
-        if (yPos - yStep < PYRAMID_BOTTOM
-                && mainExitPoint.getDirection() != Point.Direction.Right)
-            exitPoints.add(new DirectedPoint(rect, Point.Direction.Right, yPos)); // - yStep));
 
         //... make right platforms
         if (exitWindow.getDirection() == Point.Direction.Up
@@ -189,27 +177,22 @@ public class PyramidStrategy implements FillStrategy
         }
         else
         {
-            xPos = vertex.getX() + xStep;
-            yPos = vertex.getY() + yStep;
+            double posX = vertex.getX() + xStep;
+            double posY = vertex.getY() + yStep;
 
-            for (; xPos < rect.getWidth() && yPos < PYRAMID_BOTTOM; )
+            for (; posX < rect.getWidth() && posY < PYRAMID_BOTTOM; )
             {
-                double platWidth = Math.min(xStep, rect.getWidth() - xPos);
-                double platHeight = PYRAMID_BOTTOM - yPos;
+                double platWidth = Math.min(xStep, rect.getWidth() - posX);
+                double platHeight = PYRAMID_BOTTOM - posY;
 
-                addPlatform(components, rect, xPos, yPos, platWidth, platHeight);
+                addPlatform(components, rect, posX, posY, platWidth, platHeight);
 
-                xPos += xStep;
-                yPos += yStep;
+                posX += xStep;
+                posY += yStep;
             }
 
-            if (yPos - yStep < PYRAMID_BOTTOM
-                    && mainExitPoint.getDirection() != Point.Direction.Right)
-                exitPoints.add(new DirectedPoint(rect, Point.Direction.Right, yPos)); // - yStep));
-
-            // TODO
             SpawnRegionComponent.addSpawnRegionInRange(
-                    xPos,
+                    posX,
                     rect.getWidth(),
                     fixedRegion,
                     mainExitPoint.toAnotherRect(fixedRect),
@@ -233,27 +216,23 @@ public class PyramidStrategy implements FillStrategy
         }
         else
         {
-            xPos = vertex.getX() - xStep;
-            yPos = vertex.getY() + yStep;
+            double posX = vertex.getX() - xStep;
+            double posY = vertex.getY() + yStep;
 
-            for (; xPos > -xStep && yPos < PYRAMID_BOTTOM; )
+            for (; posX > -xStep && posY < PYRAMID_BOTTOM; )
             {
-                double platWidth = Math.min(xStep, xPos + xStep);
-                double platHeight = PYRAMID_BOTTOM - yPos;
+                double platWidth = Math.min(xStep, posX + xStep);
+                double platHeight = PYRAMID_BOTTOM - posY;
 
-                addPlatform(components, rect, Math.max(xPos, 0), yPos, platWidth, platHeight);
+                addPlatform(components, rect, Math.max(posX, 0), posY, platWidth, platHeight);
 
-                xPos -= xStep;
-                yPos += yStep;
+                posX -= xStep;
+                posY += yStep;
             }
-
-            if (yPos - yStep < PYRAMID_BOTTOM
-                    && mainExitPoint.getDirection() != Point.Direction.Left)
-                exitPoints.add(new DirectedPoint(rect, Point.Direction.Left, yPos));
 
             SpawnRegionComponent.addSpawnRegionInRange(
                     0,
-                    xPos + xStep,
+                    posX + xStep,
                     fixedRegion,
                     mainExitPoint.toAnotherRect(fixedRect),
                     fixedRegion.getRect().getHeight(),
@@ -340,20 +319,27 @@ public class PyramidStrategy implements FillStrategy
             Rectangle rect,
             Point rawVertex) throws MapGeneratorException
     {
-        double vertexX = toGrid(rawVertex.getX());
-        double vertexXDispl = toGrid(rawVertex.getX()) + getPlayerWidth();
+        double vertexLeftX = toGrid(rawVertex.getX());
+        double vertexRightX = toGrid(rawVertex.getX()) + getHorizontalStep();
         double vertexY = toGrid(rawVertex.getY());
 
         double xStep = getHorizontalStep();
         double yStep = getVerticalStep();
         assert(xStep > 0);
         assert(yStep > 0);
-        double yDispl = toGrid(rect.getHeight() - vertexY);
-        double xDispl = yDispl * xStep / yStep;
-        double lxDispl = Math.min(xDispl, vertexX);
-        double rxDispl = Math.min(xDispl, rect.getWidth() - vertexXDispl);
-        double lyDispl = lxDispl * yStep / xStep;
-        double ryDispl = rxDispl * yStep / xStep;
+        double pyramidH = toGrid(rect.getHeight() - vertexY);
+        double pyramidHalfW = pyramidH * xStep / yStep;
+        double leftPyramidWidth = Math.min(pyramidHalfW, vertexLeftX);
+        double rightPyramidWidth = Math.min(pyramidHalfW, rect.getWidth() - vertexRightX);
+
+        double leftStairsH = leftPyramidWidth * yStep / xStep;
+        double rightStairsH = rightPyramidWidth * yStep / xStep;
+
+        if (pyramidHalfW > vertexLeftX)
+            leftStairsH = Math.floor(leftStairsH / yStep) * yStep;
+
+        if (pyramidHalfW > rect.getWidth() - vertexRightX)
+            rightStairsH = Math.floor(rightStairsH / yStep) * yStep;
 
         // add top window
         enterWindows.add(new DirectedWindow(
@@ -365,36 +351,28 @@ public class PyramidStrategy implements FillStrategy
         final double horizontalReserve = toGrid(getPlayerWidth());
 
         // add left window
-        double leftWindowSize = toGridLess(vertexY + lyDispl);
-        final double leftVerticalReserve
-                = (xDispl >= getGridStep() && lxDispl < xDispl + getHorizontalStep() / 2)
-                ? toGrid(getPlayerHeight() * 1.0)
-                : 0;
+        double leftWindowSize = toGridLess(vertexY + leftStairsH);
 
         enterWindows.add(new DirectedWindow(
                 rect,
                 Point.Direction.Right,
                 0,
-                leftWindowSize - leftVerticalReserve));
+                leftWindowSize)); // - leftVerticalReserve));
 
         // add right window
-        double rightWindowSize = toGridLess(vertexY + ryDispl);
-        final double rightVerticalReserve
-                = (xDispl >= getGridStep() && rxDispl < xDispl + getHorizontalStep() / 2)
-                ? toGrid(getPlayerHeight() * 1.0)
-                : 0;
+        double rightWindowSize = toGridLess(vertexY + rightStairsH);
 
         enterWindows.add(new DirectedWindow(
                 rect,
                 Point.Direction.Left,
                 0,
-                rightWindowSize - rightVerticalReserve));
+                rightWindowSize)); // - rightVerticalReserve));
 
         // add bottom windows
-        double reserveDisplacement = (yDispl < 0.5 * getGridStep()) // (xDispl < getGridStep())
+        double reserveDisplacement = (pyramidH < 0.5 * getGridStep()) // (pyramidHalfW < getGridStep())
                 ? 0
                 : getHorizontalStep() + get("H_WINDOW_DISPLACEMENT");
-        double rightPos = toGridLess(vertexX - xDispl - reserveDisplacement);
+        double rightPos = toGridLess(vertexLeftX - pyramidHalfW - reserveDisplacement);
 
         if (rightPos > 0)
             enterWindows.add(new DirectedWindow(
@@ -403,7 +381,7 @@ public class PyramidStrategy implements FillStrategy
                     0,
                     rightPos)); // - horizontalReserve));
 
-        double leftPos = toGrid(vertexX + xDispl + reserveDisplacement);
+        double leftPos = toGrid(vertexLeftX + pyramidHalfW + reserveDisplacement);
 
         if (leftPos < rect.getWidth())
             enterWindows.add(new DirectedWindow(
@@ -425,7 +403,7 @@ public class PyramidStrategy implements FillStrategy
 
             if (window.isOnHorizontalEdge() && window.getSize() < H_WINDOW_SIZE)
                 windowsForDelete.add(window);
-            else if(!window.isOnHorizontalEdge() && window.getSize() < getPlayerHeight())
+            else if (!window.isOnHorizontalEdge() && window.getSize() < get("V_WINDOW_SIZE"))
                 windowsForDelete.add(window);
             else
             {
@@ -465,29 +443,22 @@ public class PyramidStrategy implements FillStrategy
 
     private double getGridStep() throws MapGeneratorException
     {
-        return WorldProperties.getInstance().get("GRID_STEP");
-    }
-
-    private double getPlayerHeight() throws MapGeneratorException
-    {
-        return WorldProperties.getInstance().get("PLAYER_HEIGHT");
+        return get("GRID_STEP");
     }
 
     private double getPlayerWidth() throws MapGeneratorException
     {
-        return WorldProperties.getInstance().bindToGrid(
-                WorldProperties.getInstance().get("PLAYER_WIDTH"));
+        return toGrid(get("PLAYER_WIDTH"));
     }
 
     private double getHorizontalStep() throws MapGeneratorException
     {
-        return WorldProperties.getInstance().get("MIN_PLATFORM_WIDTH");
+        return get("MIN_PLATFORM_WIDTH");
     }
 
     private double getVerticalStep() throws MapGeneratorException
     {
-        return WorldProperties.getInstance().bindToGrid(
-                WorldProperties.getInstance().get("JUMP_HEIGHT") * 0.7);
+        return toGrid(get("JUMP_HEIGHT") * 0.7);
     }
 
     private static double get(String name) throws MapGeneratorException
