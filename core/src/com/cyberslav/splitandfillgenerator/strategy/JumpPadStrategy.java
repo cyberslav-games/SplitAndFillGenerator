@@ -15,8 +15,8 @@ public class JumpPadStrategy implements FillStrategy
     {
         ArrayList<DirectedWindow> enterWindows = new ArrayList<>();
 
-        if (rect.getHeight() > get("MAX_JUMP_PAD_HEIGHT"))
-            return enterWindows;
+//        if (rect.getHeight() > get("MAX_JUMP_PAD_HEIGHT"))
+//            return enterWindows;
 
         enterWindows.add(new DirectedWindow(
                 rect,
