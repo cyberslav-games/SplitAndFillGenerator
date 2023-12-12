@@ -11,6 +11,12 @@ import java.util.Collection;
  */
 public class FloorStrategy implements FillStrategy
 {
+    @Override public String getName()
+    {
+        return "Floor";
+    }
+
+    
     @Override public Collection<DirectedWindow> tryFill(
             Rectangle rect,
             DirectedWindow exitWindow) throws MapGeneratorException

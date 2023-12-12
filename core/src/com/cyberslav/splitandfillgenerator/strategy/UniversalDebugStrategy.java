@@ -11,6 +11,12 @@ import java.util.Collection;
  */
 public class UniversalDebugStrategy implements FillStrategy
 {
+    @Override public String getName()
+    {
+        return "Empty";
+    }
+
+
     @Override public Collection<DirectedWindow> tryFill(
             Rectangle rect,
             DirectedWindow exitWindow)

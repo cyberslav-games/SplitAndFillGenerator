@@ -17,6 +17,12 @@ public class PyramidStrategy implements FillStrategy
     }
 
 
+    @Override public String getName()
+    {
+        return "Pyramid";
+    }
+
+
     @Override public Collection<DirectedWindow> tryFill(
             Rectangle rect,
             DirectedWindow exitWindow) throws MapGeneratorException

@@ -18,7 +18,7 @@ public class SplitAndFillGenerator implements MapGenerator
     public SplitAndFillGenerator() throws MapGeneratorException
     {
         // create strategies
-//        _strategyRegistry.add(new FloorStrategy());
+        _strategyRegistry.add(new FloorStrategy());
         _strategyRegistry.add(new GridStrategy());
         _strategyRegistry.add(new PyramidStrategy());
         _strategyRegistry.add(new JumpPadStrategy());
@@ -306,10 +306,12 @@ public class SplitAndFillGenerator implements MapGenerator
         _mapComponents.add(
                 new DebugRegionComponent(
                         region,
-                        strategy.getClass().getSimpleName()
-                                + "\n" + region.getRect().toString()
-                                + "\n" + region.getEnterPoint().toString()
-                                + "\n" + region.getExitWindow().toString()));
+                        strategy.getName()
+//                        strategy.getClass().getSimpleName()
+//                                + "\n" + region.getRect().toString()
+//                                + "\n" + region.getEnterPoint().toString()
+//                                + "\n" + region.getExitWindow().toString()
+                        ));
     }
 
     // </editor-fold>

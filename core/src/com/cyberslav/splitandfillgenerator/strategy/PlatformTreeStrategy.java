@@ -8,6 +8,12 @@ import java.util.Collection;
 public class PlatformTreeStrategy implements FillStrategy
 {
     // public
+    @Override public String getName()
+    {
+        return "Tree";
+    }
+
+
     @Override public Collection<DirectedWindow> tryFill(
             Rectangle rect,
             DirectedWindow exitWindow) throws MapGeneratorException

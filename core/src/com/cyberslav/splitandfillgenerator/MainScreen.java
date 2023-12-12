@@ -126,7 +126,19 @@ public class MainScreen implements Screen, InputProcessor
                 enterPos - vWindowSize,
                 enterPos);
 
-        _components = _generator.generateRegion(region, enterWindow);
+        _components = null;
+
+        for (int tryNum = 0; tryNum < 8 && _components == null; ++tryNum)
+        {
+            try
+            {
+                _components = _generator.generateRegion(region, enterWindow);
+            }
+            catch (MapGeneratorException ignored)
+            {
+            }
+        }
+
         _rendererActor.setComponents(_components);
     }
 

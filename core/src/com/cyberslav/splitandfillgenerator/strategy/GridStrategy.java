@@ -19,6 +19,11 @@ public class GridStrategy implements FillStrategy
     }
 
 
+    @Override public String getName()
+    {
+        return "Grid";
+    }
+
 
     @Override public Collection<DirectedWindow> tryFill(
             Rectangle rect,

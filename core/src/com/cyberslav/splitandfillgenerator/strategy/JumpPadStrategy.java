@@ -9,14 +9,20 @@ import java.util.Collection;
 public class JumpPadStrategy implements FillStrategy
 {
     // public
+    @Override public String getName()
+    {
+        return "JumpPud";
+    }
+
+
     @Override public Collection<DirectedWindow> tryFill(
             Rectangle rect,
             DirectedWindow exitWindow) throws MapGeneratorException
     {
         ArrayList<DirectedWindow> enterWindows = new ArrayList<>();
 
-//        if (rect.getHeight() > get("MAX_JUMP_PAD_HEIGHT"))
-//            return enterWindows;
+        if (rect.getHeight() > get("MAX_JUMP_PAD_HEIGHT"))
+            return enterWindows;
 
         enterWindows.add(new DirectedWindow(
                 rect,
