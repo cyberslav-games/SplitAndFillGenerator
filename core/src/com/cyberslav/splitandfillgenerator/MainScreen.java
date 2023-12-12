@@ -3,9 +3,12 @@ package com.cyberslav.splitandfillgenerator;
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.cyberslav.splitandfillgenerator.component.MapComponent;
@@ -18,7 +21,9 @@ public class MainScreen implements Screen, InputProcessor
     // public
     public MainScreen()
     {
-        Gdx.input.setInputProcessor(this);
+        InputMultiplexer multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(this);
+        Gdx.input.setInputProcessor(multiplexer);
 
         // create scene
         OrthographicCamera stageCamera = new OrthographicCamera(
@@ -26,27 +31,58 @@ public class MainScreen implements Screen, InputProcessor
                 Gdx.graphics.getHeight());
 
         stageCamera.setToOrtho(
-                true,
+                false,
                 Gdx.graphics.getWidth(),
                 Gdx.graphics.getHeight());
 
         ScreenViewport viewport = new ScreenViewport(stageCamera);
         _stage = new Stage(viewport);
-        _rendererActor = new RendererActor(_renderer);
+        multiplexer.addProcessor(_stage);
 
+        // create renderer actor
+        _rendererActor = new RendererActor(_renderer);
+        _stage.addActor(_rendererActor);
+
+        // create UI
+        //.. table
         float margin = 10.0f;
         Table table = new Table();
 
         table.setFillParent(true);
-        table.right().bottom();
+        table.right().top();
         table.pad(margin, margin, margin, margin);
 
-        Label.LabelStyle style = new Label.LabelStyle(new BitmapFont(true), null);
-        Label testLabel = new Label("Some text", style);
+//        Label.LabelStyle style = new Label.LabelStyle(new BitmapFont(true), null);
+//        Label testLabel = new Label("Some text", style);
+//        table.add(testLabel).right().padBottom(margin).row();
 
-        table.add(testLabel).right().padBottom(margin).row();
+        Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
+        table.add(new Label("Renderer", skin)).left().row();
 
-        _stage.addActor(_rendererActor);
+        final CheckBox gridCheckBox = new CheckBox("grid", skin);
+        table.add(gridCheckBox).padLeft(margin).left().row();
+        gridCheckBox.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                _renderer.setGridEnabled(gridCheckBox.isChecked());
+            }
+        });
+
+        final CheckBox spawnRegionsCheckBox = new CheckBox("spawn regions", skin);
+        table.add(spawnRegionsCheckBox).padLeft(margin).left().row();
+        spawnRegionsCheckBox.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                _renderer.setSpawnEnabled(spawnRegionsCheckBox.isChecked());
+            }
+        });
+
+        final CheckBox debugRegionsCheckBox = new CheckBox("debug regions", skin);
+        table.add(debugRegionsCheckBox).padLeft(margin).left().row();
+        debugRegionsCheckBox.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                _renderer.setDebugEnabled(debugRegionsCheckBox.isChecked());
+            }
+        });
+
         _stage.addActor(table);
 
         // generate level
@@ -65,7 +101,17 @@ public class MainScreen implements Screen, InputProcessor
     }
 
 
-    @Override public void resize(int width, int height) {}
+    @Override public void resize(int width, int height)
+    {
+        _stage.getViewport().update(
+                Gdx.graphics.getWidth(),
+                Gdx.graphics.getHeight(),
+                true);
+
+        _rendererActor.updateSize();
+    }
+
+
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
@@ -89,6 +135,7 @@ public class MainScreen implements Screen, InputProcessor
 
     @Override public boolean keyUp(int keycode) { return false; }
     @Override public boolean keyTyped(char character) { return false; }
+
     @Override public boolean touchDown(int screenX, int screenY, int pointer, int button) { return false; }
     @Override public boolean touchUp(int screenX, int screenY, int pointer, int button) { return false; }
     @Override public boolean touchDragged(int screenX, int screenY, int pointer) { return false; }

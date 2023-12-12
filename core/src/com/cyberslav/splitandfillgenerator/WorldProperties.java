@@ -86,8 +86,8 @@ public class WorldProperties
 //        set("SPAWN_REGION_HEIGHT", get("PLAYER_HEIGHT"));
 
 //        double gridStep = 36.0;
-//        double gridStep = 8.0;
-        double gridStep = 4.0;
+        double gridStep = 8.0;
+//        double gridStep = 4.0;
 
         set("GRID_STEP", gridStep);
         set("RAW_PLAYER_WIDTH", gridStep * 1.5);

@@ -1,7 +1,10 @@
 package com.cyberslav.splitandfillgenerator;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.cyberslav.splitandfillgenerator.component.MapComponent;
 
@@ -17,7 +20,10 @@ public class RendererActor extends Actor
     {
         _renderer = renderer;
 
-        //
+        _camera.setToOrtho(
+                true,
+                Gdx.graphics.getWidth(),
+                Gdx.graphics.getHeight());
     }
 
 
@@ -27,11 +33,20 @@ public class RendererActor extends Actor
     }
 
 
+    public void updateSize()
+    {
+        _camera.setToOrtho(
+                true,
+                Gdx.graphics.getWidth(),
+                Gdx.graphics.getHeight());
+    }
+
+
     @Override public void draw(Batch batch, float parentAlpha)
     {
-//        batch.setProjectionMatrix(_camera.getProjectionMatrix());
+        batch.setProjectionMatrix(_camera.combined);
         _renderer.render(_components, (SpriteBatch) batch);
-//        batch.setProjectionMatrix(getStage().getCamera().combined);
+        batch.setProjectionMatrix(getStage().getCamera().combined);
     }
 
 
@@ -39,5 +54,9 @@ public class RendererActor extends Actor
 
     // data
     private final DebugRenderer _renderer;
+    OrthographicCamera _camera = new OrthographicCamera(
+            Gdx.graphics.getWidth(),
+            Gdx.graphics.getHeight());
+
     private Collection<MapComponent> _components;
 }

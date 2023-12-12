@@ -129,6 +129,7 @@ public class JumpPadStrategy implements FillStrategy
 
         if (exitWindow.isOnHorizontalEdge())
         {
+            // TODO: выбирать точку выхода изходя расстояния до входной точки
             double enterXPos = enterPoint.toLocalPoint(true).getX();
             double exitPos = (enterXPos < 0.5 * rect.getWidth())
                     ? exitWindow.getEndPosition() - playerWidth

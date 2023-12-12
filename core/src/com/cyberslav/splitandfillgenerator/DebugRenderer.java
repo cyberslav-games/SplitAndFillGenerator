@@ -20,6 +20,11 @@ public class DebugRenderer
     }
 
 
+    public void setGridEnabled(boolean isEnabled) { _gridEnabled = isEnabled; }
+    public void setSpawnEnabled(boolean isEnabled) { _spawnRegionsEnabled = isEnabled; }
+    public void setDebugEnabled(boolean isEnabled) { _debugRegionsEnabled = isEnabled; }
+
+
     public void render(Collection<MapComponent> components, SpriteBatch batch)
     {
         batch.end();
