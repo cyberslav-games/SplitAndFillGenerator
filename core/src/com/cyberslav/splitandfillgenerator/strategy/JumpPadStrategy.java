@@ -21,92 +21,57 @@ public class JumpPadStrategy implements FillStrategy
     {
         ArrayList<DirectedWindow> enterWindows = new ArrayList<>();
 
-        if (rect.getHeight() > get("MAX_JUMP_PAD_HEIGHT"))
-            return enterWindows;
-
+        // add enter windows
+        //.. left
         enterWindows.add(new DirectedWindow(
                 rect,
                 Point.Direction.Left,
                 0,
                 rect.getHeight()));
 
+        //.. Right
         enterWindows.add(new DirectedWindow(
                 rect,
                 Point.Direction.Right,
                 0,
                 rect.getHeight()));
 
+        //.. Down
         enterWindows.add(new DirectedWindow(
                 rect,
                 Point.Direction.Down,
                 0,
                 rect.getWidth()));
 
-        boolean needJumpPad = exitWindow.getDirection() == Point.Direction.Up
-                || (!exitWindow.isOnHorizontalEdge()
-                        && rect.getHeight() - exitWindow.getEndPosition() > get("JUMP_HEIGHT"));
+        //.. Up
+        final Point.Direction exitDir = exitWindow.getDirection();
+        final boolean exitOnTop = exitDir == Point.Direction.Up;
+        final double leftExitX = exitOnTop ? exitWindow.getStartPosition() : 0;
+        final double rightExitX = exitOnTop ? exitWindow.getEndPosition() : rect.getWidth();
+        final double jumpPadWidth = get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS");
+        final double heroWidth = get("PLAYER_WIDTH");
+        final double windowReserve = get("H_WINDOW_DISPLACEMENT");
+        final double leftReserve = jumpPadWidth + windowReserve;
+        final double rightReserve = jumpPadWidth + windowReserve + heroWidth;
 
-        double playerWidth = get("PLAYER_WIDTH");
-
-        if (needJumpPad)
-        {
-            Point.Direction exitDir = exitWindow.getDirection();
-            boolean exitOnTop = exitDir == Point.Direction.Up;
-            double leftExitX = exitOnTop ? exitWindow.getStartPosition() : 0;
-            double rightExitX = exitOnTop
-                    ? (exitWindow.getEndPosition() - playerWidth)
-                    : (rect.getWidth() - playerWidth);
-            double jumpPadWidth = get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS");
-            double reserve = get("H_WINDOW_DISPLACEMENT") + playerWidth;
-
-            double leftWindowWidth = toGrid(rightExitX - Math.max(0, jumpPadWidth - playerWidth) - reserve);
-
-            if (exitDir != Point.Direction.Left && leftWindowWidth >= playerWidth)
-                enterWindows.add(new DirectedWindow(
-                        rect,
-                        Point.Direction.Up,
-                        0,
-                        leftWindowWidth));
-
-            double rightWindowWidth = toGrid(rect.getWidth() - (leftExitX + jumpPadWidth + reserve));
-
-            if (exitDir != Point.Direction.Right && rightWindowWidth >= playerWidth)
-                enterWindows.add(new DirectedWindow(
-                        rect,
-                        Point.Direction.Up,
-                        rect.getWidth() - rightWindowWidth,
-                        rect.getWidth()
-                        ));
-        }
-        else
-        {
-            double reserve = playerWidth + get("H_WINDOW_DISPLACEMENT");
-
-            if (exitWindow.getDirection() == Point.Direction.Right)
-            {
-                enterWindows.add(new DirectedWindow(
-                        rect,
-                        Point.Direction.Up,
-                        0,
-                        rect.getWidth() - reserve - playerWidth));
-            }
-            else if (exitWindow.getDirection() == Point.Direction.Left)
-            {
-                enterWindows.add(new DirectedWindow(
-                        rect,
-                        Point.Direction.Up,
-                        0 + reserve,
-                        rect.getWidth()));
-            }
-            else
-            {
-                enterWindows.add(new DirectedWindow(
-                        rect,
-                        Point.Direction.Up,
-                        0,
-                        rect.getWidth()));
-            }
-        }
+        if (exitDir == Point.Direction.Right)
+            enterWindows.add(new DirectedWindow(
+                    rect,
+                    Point.Direction.Up,
+                    0,
+                    rightExitX - rightReserve));
+        else if (exitDir == Point.Direction.Left)
+            enterWindows.add(new DirectedWindow(
+                    rect,
+                    Point.Direction.Up,
+                    leftExitX + leftReserve,
+                    rect.getWidth()));
+        else if (exitDir == Point.Direction.Up)
+            enterWindows.add(new DirectedWindow(
+                    rect,
+                    Point.Direction.Up,
+                    leftExitX + leftReserve,
+                    rightExitX - rightReserve));
 
         return enterWindows;
     }
@@ -125,20 +90,27 @@ public class JumpPadStrategy implements FillStrategy
         // create exit point
         ArrayList<DirectedPoint> exitPoints = new ArrayList<>();
         DirectedPoint exitPoint = null;
-        double playerWidth = get("PLAYER_WIDTH");
+        double heroWidth = get("PLAYER_WIDTH");
+        boolean exitToRight;
 
         if (exitWindow.isOnHorizontalEdge())
         {
-            // TODO: выбирать точку выхода изходя расстояния до входной точки
-            double enterXPos = enterPoint.toLocalPoint(true).getX();
-            double exitPos = (enterXPos < 0.5 * rect.getWidth())
-                    ? exitWindow.getEndPosition() - playerWidth
+            final double enterXPos = enterPoint.toLocalPoint(true).getX();
+            final double leftDistance = Math.abs(enterXPos - exitWindow.getStartPosition());
+            final double rightDistance = Math.abs(enterXPos - (exitWindow.getEndPosition()));
+
+            exitToRight = (leftDistance < rightDistance);
+            double exitPosition
+                    = (exitToRight)
+                    ? exitWindow.getEndPosition() - heroWidth
                     : exitWindow.getStartPosition();
 
-            exitPoint = new DirectedPoint(rect, exitWindow.getDirection(), exitPos);
+            exitPosition = Math.min(exitPosition, rect.getWidth() - heroWidth);
+            exitPoint = new DirectedPoint(rect, exitWindow.getDirection(), exitPosition);
         }
         else
         {
+            exitToRight = exitWindow.getDirection() == Point.Direction.Right;
             exitPoint = new DirectedPoint(rect, exitWindow.getDirection(), exitWindow.getEndPosition());
         }
 
@@ -146,10 +118,11 @@ public class JumpPadStrategy implements FillStrategy
 
         // create component
         //.. create floor
-        double floorPos = Math.max(
+        final double floorPos = Math.max(
                 enterPoint.toLocalPoint(true).getY(),
                 exitPoint.toLocalPoint(false).getY());
-        double floorHeight = toGrid(rect.getHeight() - floorPos);
+
+        final double floorHeight = toGrid(rect.getHeight() - floorPos);
 
         if (floorHeight > 0)
         {
@@ -161,9 +134,7 @@ public class JumpPadStrategy implements FillStrategy
                     )));
         }
 
-        boolean needJumpPad = exitWindow.getDirection() == Point.Direction.Up
-                || (!exitWindow.isOnHorizontalEdge()
-                && /*rect.getHeight()*/floorPos - exitWindow.getEndPosition() > get("JUMP_HEIGHT"));
+        final boolean needJumpPad = floorPos - exitPoint.toLocalPoint(false).getY() >= get("JUMP_HEIGHT");
 
         if (!needJumpPad)
         {
@@ -183,38 +154,42 @@ public class JumpPadStrategy implements FillStrategy
         Point localExitPoint = exitPoint.toLocalPoint(false);
         double exitX = localExitPoint.getX();
 
-        double jumpPadX = toGrid(exitX + 0.5 * playerWidth - 0.5 * jumpPadWidth);
+        if (exitToRight && exitPoint.getDirection() == Point.Direction.Up)
+            exitX += heroWidth;
 
-        jumpPadX = Math.max(0, jumpPadX);
-        jumpPadX = Math.min(rect.getWidth() - jumpPadWidth, jumpPadX);
+        final double jumpPadX = toGrid(
+                exitToRight
+                        ? exitX - jumpPadWidth
+                        : exitX);
 
-        components.add(new JumpPadComponent(new Rectangle(
-                toGrid(rect.getX() + jumpPadX),
-                toGrid(rect.getY() + localExitPoint.getY()),
-                toGrid(jumpPadWidth),
-                toGrid(/*rect.getHeight()*/ floorPos - localExitPoint.getY())
-                )));
+        components.add(
+                new JumpPadComponent(
+                        new Rectangle(
+                                toGrid(rect.getX() + jumpPadX),
+                                toGrid(rect.getY() + localExitPoint.getY()),
+                                toGrid(jumpPadWidth),
+                                toGrid(floorPos - localExitPoint.getY())
+                        )));
 
         //.. create side wall & spawn regions
-        boolean exitIsUp = exitWindow.getDirection() == Point.Direction.Up;
-        double enterX = enterPoint.toLocalPoint(true).getX();
-        double localXPos = jumpPadX + jumpPadWidth;
-        double rightWallWidth = exitIsUp ? toGrid(rect.getWidth() - localXPos) : 0;
-        double leftWallWidth = exitIsUp ? toGrid(jumpPadX) : 0;
-
-        if (enterX < exitX)
+        if (exitToRight)
         {
-            if (rightWallWidth > 0)
-                components.add(new PlatformComponent(new Rectangle(
-                        toGrid(rect.getX() + localXPos),
-                        toGrid(rect.getY() + 0),
-                        rightWallWidth,
-                        toGrid(rect.getHeight())
-                        )));
+            final double wallStart = jumpPadX + jumpPadWidth;
+            final double wallSize = rect.getWidth() - wallStart;
+
+            if (wallSize > 0)
+                components.add(
+                        new PlatformComponent(
+                                new Rectangle(
+                                        toGrid(rect.getX() + wallStart),
+                                        toGrid(rect.getY()),
+                                        wallSize,
+                                        floorPos
+                                        )));
 
             SpawnRegionComponent.addSpawnRegionInRange(
                     0,
-                    localXPos - jumpPadWidth,
+                    jumpPadX,
                     region,
                     exitPoint,
                     floorPos,
@@ -223,16 +198,21 @@ public class JumpPadStrategy implements FillStrategy
         }
         else
         {
-            if (leftWallWidth > 0)
-                components.add(new PlatformComponent(new Rectangle(
-                        toGrid(rect.getX() + 0),
-                        toGrid(rect.getY() + 0),
-                        leftWallWidth,
-                        toGrid(floorPos)
-                        )));
+            final double wallEnd = jumpPadX;
+            final double wallSize = wallEnd;
+
+            if (wallSize > 0)
+                components.add(
+                        new PlatformComponent(
+                                new Rectangle(
+                                        toGrid(rect.getX()),
+                                        toGrid(rect.getY()),
+                                        wallSize,
+                                        floorPos
+                                        )));
 
             SpawnRegionComponent.addSpawnRegionInRange(
-                    leftWallWidth + jumpPadWidth,
+                    jumpPadX + jumpPadWidth,
                     rect.getWidth(),
                     region,
                     exitPoint,
@@ -249,15 +229,14 @@ public class JumpPadStrategy implements FillStrategy
     @Override public double getMinWidth() throws MapGeneratorException
     {
         return get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS")
-//                + get("PLAYER_WIDTH")
+                + 2.0 * get("PLAYER_WIDTH")
                 + get("H_WINDOW_DISPLACEMENT")
                 ;
     }
 
     @Override public double getMinHeight() throws MapGeneratorException
     {
-//        return toGrid(get("V_WINDOW_SIZE") * 1.5);
-        return toGrid(get("V_WINDOW_SIZE") * 4.0);  // TODO: вынести в настройки
+        return toGrid(get("V_WINDOW_SIZE") * 4.0);
     }
 
     @Override public double getUseProbability() throws MapGeneratorException

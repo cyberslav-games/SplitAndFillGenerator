@@ -86,8 +86,8 @@ public class WorldProperties
 //        set("SPAWN_REGION_HEIGHT", get("PLAYER_HEIGHT"));
 
 //        double gridStep = 36.0;
-        double gridStep = 8.0;
-//        double gridStep = 4.0;
+//        double gridStep = 8.0;
+        double gridStep = 6.0;
 
         set("GRID_STEP", gridStep);
         set("RAW_PLAYER_WIDTH", gridStep * 1.5);
@@ -105,10 +105,10 @@ public class WorldProperties
         set("RUN_SPEED", gridStep * 25);
         set("MIN_SPLIT_SQUARE", gridStep * 320);
         set("SPAWN_REGION_HEIGHT", gridStep * 3);
-        set("CUT_RATE", 0.1);
-        set("SPLIT_DEVIATION_RATE", 0.4);
-//        set("CUT_RATE", 0.02);
-//        set("SPLIT_DEVIATION_RATE", 0.381966011);
+//        set("CUT_RATE", 0.0);
+//        set("SPLIT_DEVIATION_RATE", 0.1);
+        set("CUT_RATE", 0.02);
+        set("SPLIT_DEVIATION_RATE", 0.381966011);
         set("MIN_REGION_HEIGHT_CELLS", 7);
         set("MIN_REGION_WIDTH_CELLS", 8);
         set("JUMP_PAD_WIDTH_CELLS", 2.0);

@@ -83,6 +83,14 @@ public class MainScreen implements Screen, InputProcessor
             }
         });
 
+        final CheckBox pathCheckBox = new CheckBox("path", skin);
+        table.add(pathCheckBox).padLeft(margin).left().row();
+        pathCheckBox.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                _renderer.setPathEnabled(pathCheckBox.isChecked());
+            }
+        });
+
         _stage.addActor(table);
 
         // generate level

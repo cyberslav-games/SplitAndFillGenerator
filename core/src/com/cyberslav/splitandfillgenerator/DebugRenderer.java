@@ -23,6 +23,7 @@ public class DebugRenderer
     public void setGridEnabled(boolean isEnabled) { _gridEnabled = isEnabled; }
     public void setSpawnEnabled(boolean isEnabled) { _spawnRegionsEnabled = isEnabled; }
     public void setDebugEnabled(boolean isEnabled) { _debugRegionsEnabled = isEnabled; }
+    public void setPathEnabled(boolean isEnabled) { _pathEnabled = isEnabled; }
 
 
     public void render(Collection<MapComponent> components, SpriteBatch batch)
@@ -45,6 +46,8 @@ public class DebugRenderer
         }
 
         // draw components
+        _lastRegion = null;
+
         _mode = RenderMode.Fill;
         _renderer.begin(ShapeRenderer.ShapeType.Filled);
         drawComponents(components, null);
@@ -97,28 +100,75 @@ public class DebugRenderer
             }
             else if (component instanceof DebugRegionComponent)
             {
-                if (_debugRegionsEnabled)
-                {
-                    DebugRegionComponent debugComponent = (DebugRegionComponent)component;
-                    Rectangle rect = debugComponent.getRegion().getRect();
-
-                    drawRect(
-                            rect,
-                            _debugRegionColor,
-                            null,
-                            2.0f);
-
-                    if (_mode == RenderMode.Text)
-                    {
-                        _labelFont.setColor(_debugRegionColor);
-                        _labelFont.draw(
-                                batch,
-                                debugComponent.getDebugString(),
-                                (float)rect.getX() + 4.0f,
-                                (float)rect.getY() + 8.0f);
-                    }
-                }
+                drawDebugRegion((DebugRegionComponent)component, batch);
             }
+        }
+    }
+
+
+    private void drawDebugRegion(DebugRegionComponent component, SpriteBatch batch)
+    {
+        DirectedRegion region = component.getRegion();
+
+        if (_debugRegionsEnabled)
+        {
+            // draw rect
+            Rectangle rect = region.getRect();
+
+            drawRect(
+                    rect,
+                    _debugRegionColor,
+                    null,
+                    2.0f);
+
+            // draw exit window
+            if (_mode == RenderMode.Line)
+            {
+                Point start = new DirectedPoint(
+                        rect,
+                        region.getExitWindow().getDirection(),
+                        region.getExitWindow().getStartPosition()).toGlobalPoint(false);
+
+                Point end = new DirectedPoint(
+                        rect,
+                        region.getExitWindow().getDirection(),
+                        region.getExitWindow().getEndPosition()).toGlobalPoint(false);
+
+                _renderer.setColor(Color.RED);
+                _renderer.line((float)start.getX(), (float)start.getY(), (float)end.getX(), (float)end.getY());
+            }
+
+
+            // draw strategy name
+            if (_mode == RenderMode.Text)
+            {
+                _labelFont.setColor(_debugRegionColor);
+                _labelFont.draw(
+                        batch,
+                        component.getDebugString(),
+                        (float)rect.getX() + 4.0f,
+                        (float)rect.getY() + 8.0f);
+            }
+        }
+
+        // draw path
+        if (_pathEnabled && _mode == RenderMode.Line && region.getExitPoint() != null)
+        {
+            Point enter = (_lastRegion == null)
+                    ? region.getEnterPoint().toGlobalPoint(true)
+                    : _lastRegion.getExitPoint().toGlobalPoint(false);
+
+            _lastRegion = region;
+
+            Point exit = region.getExitPoint().toGlobalPoint(false);
+
+            drawArrow(
+                    enter.getX(),
+                    enter.getY(),
+                    exit.getX(),
+                    exit.getY(),
+                    WorldProperties.getInstance().get("GRID_STEP"),
+                    _pathColor);
         }
     }
 
@@ -137,23 +187,15 @@ public class DebugRenderer
         final float centerX = (float)component.getRectangle().getCenterX();
         final float startY = (float)component.getRectangle().getY();
         final float height = (float)component.getRectangle().getHeight();
-        final float arrowSize = (float)component.getRectangle().getWidth() * 0.3f;
 
-        _renderer.setColor(_jumpPudColor);
-        _renderer.line(centerX, startY + height * 0.25f, centerX, startY + height * 0.75f);
-
-        _renderer.line(
+        drawArrow(
                 centerX,
-                startY + height * 0.25f,
-                centerX - arrowSize,
-                startY + height * 0.25f + arrowSize);
-
-        _renderer.line(
+                startY + height * 0.75,
                 centerX,
-                startY + height * 0.25f,
-                centerX + arrowSize,
-                startY + height * 0.25f + arrowSize);
-
+                startY + height * 0.25,
+                (float)component.getRectangle().getWidth() * 0.4,
+                _jumpPudColor
+                );
     }
 
 
@@ -175,6 +217,39 @@ public class DebugRenderer
 
         for (int c = 0; c < columnCount; ++c)
             _renderer.line(step * c, 0, step * c, height);
+    }
+
+
+    private void drawArrow(
+            double startX,
+            double startY,
+            double endX,
+            double endY,
+            double headLength,
+            Color color)
+    {
+        if (_mode != RenderMode.Line)
+            return;
+
+        _renderer.setColor(color);
+        _renderer.line((float)startX, (float)startY, (float)endX, (float)endY);
+
+        final double angle = Math.atan2(startY - endY, startX - endX);
+        final double headAngle = Math.PI / 4.0;
+
+        _renderer.line(
+                (float)endX,
+                (float)endY,
+                (float)(endX + headLength * Math.cos(angle - headAngle)),
+                (float)(endY + headLength * Math.sin(angle - headAngle))
+                );
+
+        _renderer.line(
+                (float)endX,
+                (float)endY,
+                (float)(endX + headLength * Math.cos(angle + headAngle)),
+                (float)(endY + headLength * Math.sin(angle + headAngle))
+        );
     }
 
 
@@ -225,6 +300,8 @@ public class DebugRenderer
     private boolean _gridEnabled = false;
     private boolean _spawnRegionsEnabled = false;
     private boolean _debugRegionsEnabled = false;
+    private boolean _pathEnabled = false;
+    private DirectedRegion _lastRegion = null;
 
     //.. cyan theme
     private final Color _backgroundColor = new Color(0.1f, 0.1f, 0.1f, 1.0f);
@@ -237,6 +314,7 @@ public class DebugRenderer
     private final Color _spawnRegionColor = Color.GRAY;
 //    private final Color _debugRegionColor = Color.ORANGE;
     private final Color _debugRegionColor = new Color(0x96661bff);
+    private final Color _pathColor = Color.LIME;
 
     //.. gray theme
 //    private final Color _backgroundColor = new Color(0x2b2b2bff);
