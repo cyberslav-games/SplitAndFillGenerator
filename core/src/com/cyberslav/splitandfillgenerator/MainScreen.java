@@ -2,14 +2,10 @@ package com.cyberslav.splitandfillgenerator;
 
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.cyberslav.splitandfillgenerator.component.MapComponent;
 
@@ -44,20 +40,36 @@ public class MainScreen implements Screen, InputProcessor
         _stage.addActor(_rendererActor);
 
         // create UI
-        //.. table
-        float margin = 10.0f;
-        Table table = new Table();
+        final float margin = 20.0f;
+        final Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
 
-        table.setFillParent(true);
+        //.. outer table
+        final Table outerTable = new Table();
+        outerTable.setFillParent(true);
+        outerTable.right().top();
+        outerTable.pad(margin, margin, margin, margin);
+        _stage.addActor(outerTable);
+
+        //.. generate button
+        final TextButton generateButton = new TextButton("Generate", skin);
+        generateButton.addListener(new ChangeListener() {
+            @Override public void changed(ChangeEvent event, Actor actor) {
+                generate();
+            }
+        });
+        outerTable.add(generateButton).row();
+
+        //.. scroll
+        final ScrollPane pane = new ScrollPane(null, skin);
+        outerTable.add(pane).row();
+
+        //.. inner table
+        final Table table = new Table();
         table.right().top();
-        table.pad(margin, margin, margin, margin);
+        pane.setActor(table);
 
-//        Label.LabelStyle style = new Label.LabelStyle(new BitmapFont(true), null);
-//        Label testLabel = new Label("Some text", style);
-//        table.add(testLabel).right().padBottom(margin).row();
-
-        Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
-        table.add(new Label("Renderer", skin)).left().row();
+        //.. renderer settings
+        table.add(new Label("Renderer", skin)).padTop(0.5f * margin).left().row();
 
         final CheckBox gridCheckBox = new CheckBox("grid", skin);
         table.add(gridCheckBox).padLeft(margin).left().row();
@@ -91,7 +103,47 @@ public class MainScreen implements Screen, InputProcessor
             }
         });
 
-        _stage.addActor(table);
+        //.. common parameters
+        table.add(new Label("Common", skin)).padTop(0.5f * margin).left().row();
+        final Table paramsTable = new Table();
+        paramsTable.right().top();
+        table.add(paramsTable).padLeft(margin).left().row();
+
+        //.. .. grid step
+        _gridStepField = new TextField(Integer.toString((int)get("GRID_STEP")), skin);
+        _gridStepField.setTextFieldFilter(_intFilter);
+        paramsTable.add(new Label("grid step", skin)).left();
+        paramsTable.add(_gridStepField).padLeft(margin).row();
+
+        //.. .. width
+        _widthField = new TextField(Integer.toString(_defaultWidth), skin);
+        _widthField.setTextFieldFilter(_intFilter);
+        paramsTable.add(new Label("width", skin)).left();
+        paramsTable.add(_widthField).padLeft(margin).row();
+
+        //.. .. height
+        _heightField = new TextField(Integer.toString(_defaultHeight), skin);
+        _heightField.setTextFieldFilter(_intFilter);
+        paramsTable.add(new Label("height", skin)).left();
+        paramsTable.add(_heightField).padLeft(margin).row();
+
+        //.. .. cut rate
+        _cutRateField = new TextField(Double.toString(get("CUT_RATE")), skin);
+        _cutRateField.setTextFieldFilter(_doubleFilter);
+        paramsTable.add(new Label("cut rate", skin)).left();
+        paramsTable.add(_cutRateField).padLeft(margin).row();
+
+        //.. .. split rate
+        _splitRateField = new TextField(Double.toString(get("SPLIT_DEVIATION_RATE")), skin);
+        _splitRateField.setTextFieldFilter(_doubleFilter);
+        paramsTable.add(new Label("split rate", skin)).left();
+        paramsTable.add(_splitRateField).padLeft(margin).row();
+
+        //.. .. min square
+        _minSquareField = new TextField(Double.toString(get("MIN_SPLIT_SQUARE") / getStep()), skin);
+        _minSquareField.setTextFieldFilter(_doubleFilter);
+        paramsTable.add(new Label("min square", skin)).left();
+        paramsTable.add(_minSquareField).padLeft(margin).row();
 
         // generate level
         generate();
@@ -155,13 +207,18 @@ public class MainScreen implements Screen, InputProcessor
     // private
     private void generate()
     {
-        double roomWidth = toGrid(1000);
-        double roomHeight = toGrid(600);
-        double enterPos = roomHeight;
-        double exitPos = roomWidth - WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
+        WorldProperties.getInstance().update(Double.parseDouble(_gridStepField.getText()));
+        set("CUT_RATE", Double.parseDouble(_cutRateField.getText()));
+        set("SPLIT_DEVIATION_RATE", Double.parseDouble(_splitRateField.getText()));
+        set("MIN_SPLIT_SQUARE", getStep() * Double.parseDouble(_minSquareField.getText()));
+
+        final double roomWidth = toGrid(Integer.parseInt(_widthField.getText()));
+        final double roomHeight = toGrid(Integer.parseInt(_heightField.getText()));
+        final double enterPos = roomHeight;
+        final double exitPos = roomWidth - WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
 //        double exitPos = toGrid(250);
-        double vWindowSize = WorldProperties.getInstance().get("V_WINDOW_SIZE");
-        double hWindowSize = WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
+        final double vWindowSize = WorldProperties.getInstance().get("V_WINDOW_SIZE");
+        final double hWindowSize = WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
 
         Rectangle rect = new Rectangle(
                 2.0 * getStep(),
@@ -181,13 +238,14 @@ public class MainScreen implements Screen, InputProcessor
                 enterPos - vWindowSize,
                 enterPos);
 
+        final SplitAndFillGenerator generator = new SplitAndFillGenerator();
         _components = null;
 
         for (int tryNum = 0; tryNum < 8 && _components == null; ++tryNum)
         {
             try
             {
-                _components = _generator.generateRegion(region, enterWindow);
+                _components = generator.generateRegion(region, enterWindow);
             }
             catch (MapGeneratorException ignored)
             {
@@ -200,7 +258,7 @@ public class MainScreen implements Screen, InputProcessor
 
     private double getStep()
     {
-        return WorldProperties.getInstance().get("GRID_STEP");
+        return get("GRID_STEP");
     }
 
 
@@ -210,11 +268,42 @@ public class MainScreen implements Screen, InputProcessor
     }
 
 
+    private double get(String name)
+    {
+        return WorldProperties.getInstance().get(name);
+    }
+
+
+    private void set(String name, double value)
+    {
+        WorldProperties.getInstance().set(name, value);
+    }
+
+
     // data
-    private final SplitAndFillGenerator _generator = new SplitAndFillGenerator();
     private final DebugRenderer _renderer = new DebugRenderer();
     private final Stage _stage;
     private final RendererActor _rendererActor;
-
+    private final int _defaultHeight = 600;
+    private final int _defaultWidth = 900;
     private Collection<MapComponent> _components;
+
+    private final TextField.TextFieldFilter _intFilter =  new TextField.TextFieldFilter() {
+        @Override public boolean acceptChar(TextField textField, char c) {
+            return Character.isDigit(c);
+        }
+    };
+
+    private final TextField.TextFieldFilter _doubleFilter =  new TextField.TextFieldFilter() {
+        @Override public boolean acceptChar(TextField textField, char c) {
+            return Character.isDigit(c) || c == '.';
+        }
+    };
+
+    private final TextField _gridStepField;
+    private final TextField _widthField;
+    private final TextField _heightField;
+    private final TextField _cutRateField;
+    private final TextField _splitRateField;
+    private final TextField _minSquareField;
 }

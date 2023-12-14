@@ -122,6 +122,7 @@ public class DebugRenderer
                     2.0f);
 
             // draw exit window
+            /*
             if (_mode == RenderMode.Line)
             {
                 Point start = new DirectedPoint(
@@ -137,7 +138,7 @@ public class DebugRenderer
                 _renderer.setColor(Color.RED);
                 _renderer.line((float)start.getX(), (float)start.getY(), (float)end.getX(), (float)end.getY());
             }
-
+            */
 
             // draw strategy name
             if (_mode == RenderMode.Text)

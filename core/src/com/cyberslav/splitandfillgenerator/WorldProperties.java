@@ -24,23 +24,6 @@ public class WorldProperties
             throw new MapGeneratorException("unknown world property " + name);
 
         return _values.get(name);
-
-//        try
-//        {
-//            _mutex.acquire();
-//
-//            try
-//            {
-//            }
-//            finally
-//            {
-//                _mutex.release();
-//            }
-//        }
-//        catch (InterruptedException error)
-//        {
-//            throw new MapGeneratorException(error);
-//        }
     }
 
 
@@ -50,45 +33,8 @@ public class WorldProperties
     }
 
 
-    public double bindToGrid(double value) throws MapGeneratorException
+    public void update(double gridStep)
     {
-        double GRID_STEP = get("GRID_STEP");
-        return Math.round(value / GRID_STEP) * GRID_STEP;
-    }
-
-    public double bindToGridLess(double value) throws MapGeneratorException
-    {
-        double GRID_STEP = get("GRID_STEP");
-        return ((int)(value / GRID_STEP)) * GRID_STEP;
-    }
-
-
-    // private interface
-    private WorldProperties() throws MapGeneratorException
-    {
-//        set("GRID_STEP", STEP);
-//        set("RAW_PLAYER_WIDTH", STEP * 1.5);
-//        set("RAW_PLAYER_HEIGHT", STEP * 3);
-//        set("PLAYER_WIDTH", bindToGrid(get("RAW_PLAYER_WIDTH")));
-//        set("PLAYER_HEIGHT", bindToGrid(get("RAW_PLAYER_HEIGHT")));
-//        set("JUMP_HEIGHT", STEP * 4);
-//        set("MIN_PLATFORM_WIDTH", bindToGrid(get("PLAYER_WIDTH")));
-//        set("FLOOR_HEIGHT", get("GRID_STEP"));
-//        set("H_WINDOW_DISPLACEMENT", get("PLAYER_WIDTH") * 2);
-//        set("V_WINDOW_SIZE", bindToGrid(get("PLAYER_HEIGHT") * 1.5));
-//        set("TOP_PLATFORM_POS", bindToGrid(get("JUMP_HEIGHT") * 0.9 - get("FLOOR_HEIGHT")));
-//        set("BORDER_SIZE", STEP);
-//        set("GRAVITY_FACTOR", STEP * 180);
-//        set("RUN_SPEED", STEP * 25);
-//        set("CUT_RATE", 0.2);
-//        set("MIN_SPLIT_SQUARE", (STEP * STEP) * (4 * 4));
-//        set("SPLIT_DEVIATION_RATE", 0.381966011);
-//        set("SPAWN_REGION_HEIGHT", get("PLAYER_HEIGHT"));
-
-//        double gridStep = 36.0;
-//        double gridStep = 8.0;
-        double gridStep = 6.0;
-
         set("GRID_STEP", gridStep);
         set("RAW_PLAYER_WIDTH", gridStep * 1.5);
         set("RAW_PLAYER_HEIGHT", gridStep * 3);
@@ -114,6 +60,26 @@ public class WorldProperties
         set("JUMP_PAD_WIDTH_CELLS", 2.0);
         set("MAX_JUMP_PAD_HEIGHT", gridStep * 30.0);
         set("JUMP_PAD_USE_PROB", 1.0);
+    }
+
+
+    public double bindToGrid(double value) throws MapGeneratorException
+    {
+        double GRID_STEP = get("GRID_STEP");
+        return Math.round(value / GRID_STEP) * GRID_STEP;
+    }
+
+    public double bindToGridLess(double value) throws MapGeneratorException
+    {
+        double GRID_STEP = get("GRID_STEP");
+        return ((int)(value / GRID_STEP)) * GRID_STEP;
+    }
+
+
+    // private interface
+    private WorldProperties() throws MapGeneratorException
+    {
+        update(6.0);
     }
 
 
