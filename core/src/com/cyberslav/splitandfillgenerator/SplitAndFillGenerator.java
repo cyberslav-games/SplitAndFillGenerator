@@ -1,8 +1,6 @@
 package com.cyberslav.splitandfillgenerator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import com.cyberslav.splitandfillgenerator.strategy.*;
 import com.cyberslav.splitandfillgenerator.component.*;
@@ -14,30 +12,67 @@ import com.cyberslav.splitandfillgenerator.component.*;
 public class SplitAndFillGenerator implements MapGenerator
 {
     // public interface
+    public enum StrategyId
+    {
+        Pyramid,
+        Grid,
+        JumpPud,
+    };
+
+
     // <editor-fold desc="public">
     public SplitAndFillGenerator() throws MapGeneratorException
     {
         // create strategies
-        _strategyRegistry.add(new FloorStrategy());
-        _strategyRegistry.add(new GridStrategy());
-        _strategyRegistry.add(new PyramidStrategy());
-        _strategyRegistry.add(new JumpPadStrategy());
+        setStrategyEnabled(StrategyId.Pyramid, true);
+        setStrategyEnabled(StrategyId.Grid, true);
+        setStrategyEnabled(StrategyId.JumpPud, true);
+
+//        _strategyRegistry.add(new FloorStrategy());
+//        _strategyRegistry.add(new GridStrategy());
+//        _strategyRegistry.add(new PyramidStrategy());
+//        _strategyRegistry.add(new JumpPadStrategy());
 //        _strategyRegistry.add(new PlatformTreeStrategy());
 
         // calculate min strategy size
-        for (FillStrategy strategy : _strategyRegistry)
+        _minStrategyHeight = get("GRID_STEP") * get("MIN_REGION_HEIGHT_CELLS");
+        _minStrategyWidth = get("GRID_STEP") * get("MIN_REGION_WIDTH_CELLS");
+
+//        for (FillStrategy strategy : _strategyRegistry)
+//        {
+//            _minStrategyHeight = Math.min(_minStrategyHeight, strategy.getMinHeight());
+//            _minStrategyWidth = Math.min(_minStrategyWidth, strategy.getMinWidth());
+//        }
+//
+//        _minStrategyHeight = Math.max(
+//                _minStrategyHeight,
+//                get("GRID_STEP") * get("MIN_REGION_HEIGHT_CELLS"));
+//
+//        _minStrategyWidth = Math.max(
+//                _minStrategyWidth,
+//                get("GRID_STEP") * get("MIN_REGION_WIDTH_CELLS"));
+    }
+
+
+    public boolean strategyIsEnabled(StrategyId id)
+    {
+        return _strategies.containsKey(id);
+    }
+
+
+    public void setStrategyEnabled(StrategyId id, boolean isEnabled)
+    {
+        if (isEnabled)
         {
-            _minStrategyHeight = Math.min(_minStrategyHeight, strategy.getMinHeight());
-            _minStrategyWidth = Math.min(_minStrategyWidth, strategy.getMinWidth());
+            switch (id)
+            {
+                case Pyramid: _strategies.put(StrategyId.Pyramid, new PyramidStrategy()); break;
+                case Grid: _strategies.put(StrategyId.Grid, new GridStrategy()); break;
+                case JumpPud: _strategies.put(StrategyId.JumpPud, new JumpPadStrategy()); break;
+            }
         }
-
-        _minStrategyHeight = Math.max(
-                _minStrategyHeight,
-                get("GRID_STEP") * get("MIN_REGION_HEIGHT_CELLS"));
-
-        _minStrategyWidth = Math.max(
-                _minStrategyWidth,
-                get("GRID_STEP") * get("MIN_REGION_WIDTH_CELLS"));
+        else
+            _strategies.remove(id);
     }
 
 
@@ -234,7 +269,7 @@ public class SplitAndFillGenerator implements MapGenerator
     {
         ArrayList<FillStrategy> validStrategies = new ArrayList<>();
 
-        for (FillStrategy strategy : _strategyRegistry)
+        for (FillStrategy strategy : _strategies.values())
             if (canApplyStrategy(strategy, region))
                 validStrategies.add(strategy);
 
@@ -342,7 +377,7 @@ public class SplitAndFillGenerator implements MapGenerator
     {
         ArrayList<FillStrategy> strategies = new ArrayList<>();
 
-        for (FillStrategy strategy : _strategyRegistry)
+        for (FillStrategy strategy : _strategies.values())
             if (MapRandom.getInstance().getNextDouble(0.0, 1.0) <= strategy.getUseProbability())
                 strategies.add(strategy);
 
@@ -1450,7 +1485,7 @@ public class SplitAndFillGenerator implements MapGenerator
 
 
     // data members
-    private final ArrayList<FillStrategy> _strategyRegistry = new ArrayList<>();
+    private final HashMap<StrategyId, FillStrategy> _strategies = new HashMap<>();
     private double _minStrategyWidth = Double.MAX_VALUE;
     private double _minStrategyHeight = Double.MAX_VALUE;
     Collection<MapComponent> _mapComponents;

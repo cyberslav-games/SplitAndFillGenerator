@@ -3,6 +3,8 @@ package com.cyberslav.splitandfillgenerator;
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -40,18 +42,15 @@ public class MainScreen implements Screen, InputProcessor
         _stage.addActor(_rendererActor);
 
         // create UI
-        final float margin = 20.0f;
-        final Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
-
         //.. outer table
         final Table outerTable = new Table();
         outerTable.setFillParent(true);
         outerTable.right().top();
-        outerTable.pad(margin, margin, margin, margin);
+        outerTable.pad(_margin, _margin, _margin, _margin);
         _stage.addActor(outerTable);
 
         //.. generate button
-        final TextButton generateButton = new TextButton("Generate", skin);
+        final TextButton generateButton = new TextButton("Generate", _skin);
         generateButton.addListener(new ChangeListener() {
             @Override public void changed(ChangeEvent event, Actor actor) {
                 generate();
@@ -60,7 +59,7 @@ public class MainScreen implements Screen, InputProcessor
         outerTable.add(generateButton).row();
 
         //.. scroll
-        final ScrollPane pane = new ScrollPane(null, skin);
+        final ScrollPane pane = new ScrollPane(null, _skin);
         outerTable.add(pane).row();
 
         //.. inner table
@@ -69,81 +68,66 @@ public class MainScreen implements Screen, InputProcessor
         pane.setActor(table);
 
         //.. renderer settings
-        table.add(new Label("Renderer", skin)).padTop(0.5f * margin).left().row();
+        final Table renderTable = addSectionTable(table, "Renderer");
 
-        final CheckBox gridCheckBox = new CheckBox("grid", skin);
-        table.add(gridCheckBox).padLeft(margin).left().row();
-        gridCheckBox.addListener(new ChangeListener() {
-            @Override public void changed(ChangeEvent event, Actor actor) {
-                _renderer.setGridEnabled(gridCheckBox.isChecked());
+        addCheckBox(renderTable, "grid", false, new CheckListener() {
+            @Override public void changed(boolean isChecked) {
+                _renderer.setGridEnabled(isChecked);
             }
         });
 
-        final CheckBox spawnRegionsCheckBox = new CheckBox("spawn regions", skin);
-        table.add(spawnRegionsCheckBox).padLeft(margin).left().row();
-        spawnRegionsCheckBox.addListener(new ChangeListener() {
-            @Override public void changed(ChangeEvent event, Actor actor) {
-                _renderer.setSpawnEnabled(spawnRegionsCheckBox.isChecked());
+        addCheckBox(renderTable, "spawn regions", false, new CheckListener() {
+            @Override public void changed(boolean isChecked) {
+                _renderer.setSpawnEnabled(isChecked);
             }
         });
 
-        final CheckBox debugRegionsCheckBox = new CheckBox("debug regions", skin);
-        table.add(debugRegionsCheckBox).padLeft(margin).left().row();
-        debugRegionsCheckBox.addListener(new ChangeListener() {
-            @Override public void changed(ChangeEvent event, Actor actor) {
-                _renderer.setDebugEnabled(debugRegionsCheckBox.isChecked());
+        addCheckBox(renderTable, "strategies", false, new CheckListener() {
+            @Override public void changed(boolean isChecked) {
+                _renderer.setDebugEnabled(isChecked);
             }
         });
 
-        final CheckBox pathCheckBox = new CheckBox("path", skin);
-        table.add(pathCheckBox).padLeft(margin).left().row();
-        pathCheckBox.addListener(new ChangeListener() {
-            @Override public void changed(ChangeEvent event, Actor actor) {
-                _renderer.setPathEnabled(pathCheckBox.isChecked());
+        addCheckBox(renderTable, "path", false, new CheckListener() {
+            @Override public void changed(boolean isChecked) {
+                _renderer.setPathEnabled(isChecked);
             }
         });
+
+        //.. room parameters
+        final int height = 600;
+        final int width = 900;
+        final Point.Direction enterDir = Point.Direction.Right;
+        final double enterPos = 1.0;
+        final Point.Direction exitDir = Point.Direction.Up;
+        final double exitStart = 0.75;
+        final double exitEnd = 1.0;
+
+        final Table roomTable = addSectionTable(table, "Room");
+
+        _widthField = addIntField(roomTable, "width", width);
+        _heightField = addIntField(roomTable, "height", height);
+        _enterDirBox = addDirectionBox(roomTable, "enter dir", enterDir);
+        _enterPosSlider = addSlider(roomTable, "enter pos", enterPos);
+
+        //.. .. exit
+        _exitDirBox = addDirectionBox(roomTable, "exit dir", exitDir);
+        _exitStartSlider = addSlider(roomTable, "exit start", exitStart);
+        _exitSizeSlider = addSlider(roomTable, "exit size", exitEnd);
 
         //.. common parameters
-        table.add(new Label("Common", skin)).padTop(0.5f * margin).left().row();
-        final Table paramsTable = new Table();
-        paramsTable.right().top();
-        table.add(paramsTable).padLeft(margin).left().row();
+        final Table paramsTable = addSectionTable(table, "Generator");
 
-        //.. .. grid step
-        _gridStepField = new TextField(Integer.toString((int)get("GRID_STEP")), skin);
-        _gridStepField.setTextFieldFilter(_intFilter);
-        paramsTable.add(new Label("grid step", skin)).left();
-        paramsTable.add(_gridStepField).padLeft(margin).row();
+        _gridStepField = addIntField(paramsTable, "grid step", (int)get("GRID_STEP"));
+        _cutRateField = addDoubleField(paramsTable, "cut rate", get("CUT_RATE"));
+        _splitRateField = addDoubleField(paramsTable, "split rate", get("SPLIT_DEVIATION_RATE"));
+        _minSquareField = addDoubleField(paramsTable, "min square", get("MIN_SPLIT_SQUARE") / getStep());
 
-        //.. .. width
-        _widthField = new TextField(Integer.toString(_defaultWidth), skin);
-        _widthField.setTextFieldFilter(_intFilter);
-        paramsTable.add(new Label("width", skin)).left();
-        paramsTable.add(_widthField).padLeft(margin).row();
-
-        //.. .. height
-        _heightField = new TextField(Integer.toString(_defaultHeight), skin);
-        _heightField.setTextFieldFilter(_intFilter);
-        paramsTable.add(new Label("height", skin)).left();
-        paramsTable.add(_heightField).padLeft(margin).row();
-
-        //.. .. cut rate
-        _cutRateField = new TextField(Double.toString(get("CUT_RATE")), skin);
-        _cutRateField.setTextFieldFilter(_doubleFilter);
-        paramsTable.add(new Label("cut rate", skin)).left();
-        paramsTable.add(_cutRateField).padLeft(margin).row();
-
-        //.. .. split rate
-        _splitRateField = new TextField(Double.toString(get("SPLIT_DEVIATION_RATE")), skin);
-        _splitRateField.setTextFieldFilter(_doubleFilter);
-        paramsTable.add(new Label("split rate", skin)).left();
-        paramsTable.add(_splitRateField).padLeft(margin).row();
-
-        //.. .. min square
-        _minSquareField = new TextField(Double.toString(get("MIN_SPLIT_SQUARE") / getStep()), skin);
-        _minSquareField.setTextFieldFilter(_doubleFilter);
-        paramsTable.add(new Label("min square", skin)).left();
-        paramsTable.add(_minSquareField).padLeft(margin).row();
+        //.. strategies
+        final Table strategyTable = addSectionTable(table, "Strategies");
+        _pyramidCheckBox = addCheckBox(strategyTable, "Pyramid", true, null);
+        _gridCheckBox = addCheckBox(strategyTable, "Grid", true, null);
+        _jumpPudCheckBox = addCheckBox(strategyTable, "Jump Pud", true, null);
 
         // generate level
         generate();
@@ -205,20 +189,125 @@ public class MainScreen implements Screen, InputProcessor
 
 
     // private
+    private Table addSectionTable(Table parentTable, String name)
+    {
+        final Table table = new Table();
+        table.right().top();
+        parentTable.add(new Label(name, _skin)).padTop(0.5f * _margin).left().row();
+        parentTable.add(table).padLeft(_margin).left().row();
+
+        return table;
+    }
+
+
+    private Slider addSlider(Table parentTable, String name, double value)
+    {
+        Slider slider = new Slider(0.0f, 1.0f, 0.01f, false, _skin);
+        slider.setValue((float)value);
+
+        addWidget(parentTable, name, slider);
+
+        return slider;
+    }
+
+
+    private CheckBox addCheckBox(Table parentTable, String name, boolean value, final CheckListener listener)
+    {
+        final CheckBox checkBox = new CheckBox(name, _skin);
+        checkBox.setChecked(value);
+        parentTable.add(checkBox).left().row();
+
+        if (listener != null)
+            checkBox.addListener(new ChangeListener()
+            {
+                @Override public void changed(ChangeEvent event, Actor actor)
+                {
+                    listener.changed(checkBox.isChecked());
+                }
+            });
+
+        return checkBox;
+    }
+
+
+    private TextField addIntField(Table parentTable, String name, int value)
+    {
+        TextField field = new TextField(Integer.toString(value), _skin);
+        field.setTextFieldFilter(_intFilter);
+
+        addWidget(parentTable, name, field);
+
+        return field;
+    }
+
+
+    private TextField addDoubleField(Table parentTable, String name, double value)
+    {
+        TextField field = new TextField(Double.toString(value), _skin);
+        field.setTextFieldFilter(_intFilter);
+
+        addWidget(parentTable, name, field);
+
+        return field;
+    }
+
+
+    private void addWidget(Table parentTable, String name, Widget widget)
+    {
+        parentTable.add(new Label(name, _skin)).left();
+        parentTable.add(widget).padLeft(0.5f * _margin).left().row();
+    }
+
+
+    private SelectBox<Point.Direction> addDirectionBox(Table parentTable, String name, Point.Direction dir)
+    {
+        SelectBox<Point.Direction> box = new SelectBox<>(_skin);
+        box.setItems(Point.Direction.Right, Point.Direction.Down, Point.Direction.Left, Point.Direction.Up);
+        box.setSelected(dir);
+
+        addWidget(parentTable, name, box);
+
+        return box;
+    }
+
+
     private void generate()
     {
+        // generator settings
         WorldProperties.getInstance().update(Double.parseDouble(_gridStepField.getText()));
         set("CUT_RATE", Double.parseDouble(_cutRateField.getText()));
         set("SPLIT_DEVIATION_RATE", Double.parseDouble(_splitRateField.getText()));
         set("MIN_SPLIT_SQUARE", getStep() * Double.parseDouble(_minSquareField.getText()));
 
+        final SplitAndFillGenerator generator = new SplitAndFillGenerator();
+
+        // strategies
+        generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.Pyramid, _pyramidCheckBox.isChecked());
+        generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.Grid, _gridCheckBox.isChecked());
+        generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.JumpPud, _jumpPudCheckBox.isChecked());
+
+        // room params
         final double roomWidth = toGrid(Integer.parseInt(_widthField.getText()));
         final double roomHeight = toGrid(Integer.parseInt(_heightField.getText()));
-        final double enterPos = roomHeight;
-        final double exitPos = roomWidth - WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
-//        double exitPos = toGrid(250);
-        final double vWindowSize = WorldProperties.getInstance().get("V_WINDOW_SIZE");
-        final double hWindowSize = WorldProperties.getInstance().get("H_WINDOW_DISPLACEMENT") * 2;
+        final double hWindowSize = get("H_WINDOW_DISPLACEMENT") + get("PLAYER_WIDTH");
+        final double vWindowSize = get("V_WINDOW_SIZE");
+
+        final Point.Direction enterDir = _enterDirBox.getSelected();
+        final Point.Direction exitDir = _exitDirBox.getSelected();
+
+        final boolean enterIsVertical = Point.isHorizontalDirection(enterDir);
+        final boolean exitIsVertical = Point.isHorizontalDirection(exitDir);
+        final double enterSideSize = enterIsVertical ? roomHeight : roomWidth;
+        final double exitSideSize = exitIsVertical ? roomHeight : roomWidth;
+        final double enterSize = enterIsVertical ? vWindowSize : hWindowSize;
+        final double minExitSize = exitIsVertical ? vWindowSize : hWindowSize;
+
+        final double enterPos = toGrid(
+                enterSize + (enterSideSize - enterSize) * _enterPosSlider.getValue());
+        final double exitStart = toGrid(
+                (exitSideSize - minExitSize) * _exitStartSlider.getValue());
+        final double exitSize = toGrid(
+                minExitSize + (exitSideSize - (exitStart + minExitSize)) * _exitSizeSlider.getValue());
 
         Rectangle rect = new Rectangle(
                 2.0 * getStep(),
@@ -228,27 +317,28 @@ public class MainScreen implements Screen, InputProcessor
 
         DirectedRegion region = new DirectedRegion(
                 rect,
-                new DirectedPoint(rect, Point.Direction.Right, enterPos),
-                new DirectedWindow(rect, Point.Direction.Up, exitPos - hWindowSize, exitPos + hWindowSize));
-//                new DirectedWindow(rect, Point.Direction.Right, exitPos - windowSize, exitPos));
+                new DirectedPoint(rect, enterDir, enterPos),
+                new DirectedWindow(rect, exitDir, exitStart, exitStart + exitSize));
 
         DirectedWindow enterWindow = new DirectedWindow(
                 rect,
                 Point.Direction.Right,
-                enterPos - vWindowSize,
+                enterPos - get("V_WINDOW_SIZE"),
                 enterPos);
 
-        final SplitAndFillGenerator generator = new SplitAndFillGenerator();
+        // generate
         _components = null;
 
-        for (int tryNum = 0; tryNum < 8 && _components == null; ++tryNum)
+        if (generator.canGenerateRegion(region))
         {
-            try
+            for (int tryNum = 0; tryNum < 8 && _components == null; ++tryNum)
             {
-                _components = generator.generateRegion(region, enterWindow);
-            }
-            catch (MapGeneratorException ignored)
-            {
+                try
+                {
+                    _components = generator.generateRegion(region, enterWindow);
+                }
+                catch (MapGeneratorException ignored) {
+                }
             }
         }
 
@@ -284,8 +374,6 @@ public class MainScreen implements Screen, InputProcessor
     private final DebugRenderer _renderer = new DebugRenderer();
     private final Stage _stage;
     private final RendererActor _rendererActor;
-    private final int _defaultHeight = 600;
-    private final int _defaultWidth = 900;
     private Collection<MapComponent> _components;
 
     private final TextField.TextFieldFilter _intFilter =  new TextField.TextFieldFilter() {
@@ -300,10 +388,25 @@ public class MainScreen implements Screen, InputProcessor
         }
     };
 
+    abstract private class CheckListener
+    {
+        abstract public void changed(boolean isChecked);
+    }
+
+    private final Skin _skin = new Skin(Gdx.files.internal("uiskin.json"));
+    private final float _margin = 20.0f;
     private final TextField _gridStepField;
-    private final TextField _widthField;
-    private final TextField _heightField;
     private final TextField _cutRateField;
     private final TextField _splitRateField;
     private final TextField _minSquareField;
+    private final TextField _widthField;
+    private final TextField _heightField;
+    private final SelectBox<Point.Direction> _enterDirBox;
+    private final SelectBox<Point.Direction> _exitDirBox;
+    private final Slider _enterPosSlider;
+    private final Slider _exitStartSlider;
+    private final Slider _exitSizeSlider;
+    private final CheckBox _pyramidCheckBox;
+    private final CheckBox _gridCheckBox;
+    private final CheckBox _jumpPudCheckBox;
 }
