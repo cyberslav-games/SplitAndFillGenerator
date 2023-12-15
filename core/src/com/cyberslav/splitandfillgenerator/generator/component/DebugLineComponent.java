@@ -1,6 +1,6 @@
-package com.cyberslav.splitandfillgenerator.component;
+package com.cyberslav.splitandfillgenerator.generator.component;
 
-import com.cyberslav.splitandfillgenerator.*;
+import com.cyberslav.splitandfillgenerator.generator.utils.Point;
 
 /**
  * Created by cyberslav on 09.12.17.

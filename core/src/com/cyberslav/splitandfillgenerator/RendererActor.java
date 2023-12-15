@@ -4,9 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.cyberslav.splitandfillgenerator.component.MapComponent;
+import com.cyberslav.splitandfillgenerator.generator.component.MapComponent;
 
 import java.util.Collection;
 

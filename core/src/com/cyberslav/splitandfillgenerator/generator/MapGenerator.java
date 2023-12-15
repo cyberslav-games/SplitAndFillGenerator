@@ -1,6 +1,8 @@
-package com.cyberslav.splitandfillgenerator;
+package com.cyberslav.splitandfillgenerator.generator;
 
-import com.cyberslav.splitandfillgenerator.component.MapComponent;
+import com.cyberslav.splitandfillgenerator.generator.component.MapComponent;
+import com.cyberslav.splitandfillgenerator.generator.utils.DirectedRegion;
+import com.cyberslav.splitandfillgenerator.generator.utils.DirectedWindow;
 
 import java.util.Collection;
 

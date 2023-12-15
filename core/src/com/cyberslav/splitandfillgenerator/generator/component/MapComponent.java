@@ -1,4 +1,4 @@
-package com.cyberslav.splitandfillgenerator.component;
+package com.cyberslav.splitandfillgenerator.generator.component;
 
 /**
  * Created by cyberslav on 01.12.17.

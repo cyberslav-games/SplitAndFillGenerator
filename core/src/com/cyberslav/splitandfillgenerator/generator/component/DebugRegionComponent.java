@@ -1,6 +1,6 @@
-package com.cyberslav.splitandfillgenerator.component;
+package com.cyberslav.splitandfillgenerator.generator.component;
 
-import com.cyberslav.splitandfillgenerator.*;
+import com.cyberslav.splitandfillgenerator.generator.utils.DirectedRegion;
 
 /**
  * Created by cyberslav on 20.12.17.

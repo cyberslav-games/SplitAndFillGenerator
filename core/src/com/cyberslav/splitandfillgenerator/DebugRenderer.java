@@ -6,9 +6,12 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.cyberslav.splitandfillgenerator.component.*;
+import com.cyberslav.splitandfillgenerator.generator.WorldProperties;
+import com.cyberslav.splitandfillgenerator.generator.component.*;
+import com.cyberslav.splitandfillgenerator.generator.utils.DirectedRegion;
+import com.cyberslav.splitandfillgenerator.generator.utils.Point;
+import com.cyberslav.splitandfillgenerator.generator.utils.Rectangle;
 
 import java.util.Collection;
 

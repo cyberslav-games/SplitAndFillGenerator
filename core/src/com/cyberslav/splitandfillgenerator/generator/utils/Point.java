@@ -1,4 +1,4 @@
-package com.cyberslav.splitandfillgenerator;
+package com.cyberslav.splitandfillgenerator.generator.utils;
 
 
 /**

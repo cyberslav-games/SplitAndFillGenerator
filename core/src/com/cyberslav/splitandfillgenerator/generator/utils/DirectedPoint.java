@@ -1,4 +1,4 @@
-package com.cyberslav.splitandfillgenerator;
+package com.cyberslav.splitandfillgenerator.generator.utils;
 
 //import com.cyberslav.UnsignedCharacter.domain.content.resources.Settings;
 //import com.cyberslav.UnsignedCharacter.foundation.geometry.*;

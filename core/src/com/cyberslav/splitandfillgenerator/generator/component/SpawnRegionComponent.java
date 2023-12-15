@@ -1,6 +1,11 @@
-package com.cyberslav.splitandfillgenerator.component;
+package com.cyberslav.splitandfillgenerator.generator.component;
 
-import com.cyberslav.splitandfillgenerator.*;
+import com.cyberslav.splitandfillgenerator.generator.MapGeneratorException;
+import com.cyberslav.splitandfillgenerator.generator.WorldProperties;
+import com.cyberslav.splitandfillgenerator.generator.utils.DirectedPoint;
+import com.cyberslav.splitandfillgenerator.generator.utils.DirectedRegion;
+import com.cyberslav.splitandfillgenerator.generator.utils.Point;
+import com.cyberslav.splitandfillgenerator.generator.utils.Rectangle;
 
 import java.util.Collection;
 

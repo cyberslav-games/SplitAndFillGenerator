@@ -1,7 +1,12 @@
-package com.cyberslav.splitandfillgenerator.strategy;
+package com.cyberslav.splitandfillgenerator.generator.strategy;
 
-import com.cyberslav.splitandfillgenerator.*;
-import com.cyberslav.splitandfillgenerator.component.*;
+import com.cyberslav.splitandfillgenerator.generator.MapGeneratorException;
+import com.cyberslav.splitandfillgenerator.generator.WorldProperties;
+import com.cyberslav.splitandfillgenerator.generator.component.JumpPadComponent;
+import com.cyberslav.splitandfillgenerator.generator.component.MapComponent;
+import com.cyberslav.splitandfillgenerator.generator.component.PlatformComponent;
+import com.cyberslav.splitandfillgenerator.generator.component.SpawnRegionComponent;
+import com.cyberslav.splitandfillgenerator.generator.utils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;

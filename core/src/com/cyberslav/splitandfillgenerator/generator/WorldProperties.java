@@ -1,6 +1,7 @@
-package com.cyberslav.splitandfillgenerator;
+package com.cyberslav.splitandfillgenerator.generator;
 
 //import java.util.concurrent.Semaphore;
+
 import java.util.TreeMap;
 
 /**

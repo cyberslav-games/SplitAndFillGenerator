@@ -3,13 +3,15 @@ package com.cyberslav.splitandfillgenerator;
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.cyberslav.splitandfillgenerator.component.MapComponent;
+import com.cyberslav.splitandfillgenerator.generator.MapGeneratorException;
+import com.cyberslav.splitandfillgenerator.generator.WorldProperties;
+import com.cyberslav.splitandfillgenerator.generator.component.MapComponent;
+import com.cyberslav.splitandfillgenerator.generator.SplitAndFillGenerator;
+import com.cyberslav.splitandfillgenerator.generator.utils.*;
 
 import java.util.Collection;
 
