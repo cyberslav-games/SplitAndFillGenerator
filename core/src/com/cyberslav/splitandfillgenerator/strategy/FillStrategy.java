@@ -20,6 +20,5 @@ public interface FillStrategy
 
     double getMinWidth() throws MapGeneratorException;
     double getMinHeight() throws MapGeneratorException;
-    double getUseProbability() throws MapGeneratorException;
     String getName();
 }

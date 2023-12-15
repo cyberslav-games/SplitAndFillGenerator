@@ -69,11 +69,6 @@ public class UniversalDebugStrategy implements FillStrategy
         return WorldProperties.getInstance().get("JUMP_HEIGHT") * 2;
     }
 
-    @Override public double getUseProbability() throws MapGeneratorException
-    {
-        return 1.0;
-    }
-
 
     // protected interface
 

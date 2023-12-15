@@ -260,11 +260,6 @@ public class PyramidStrategy implements FillStrategy
         return WorldProperties.getInstance().get("PLAYER_HEIGHT") * 2;
     }
 
-    @Override public double getUseProbability() throws MapGeneratorException
-    {
-        return 1.0;
-    }
-
 
     // private interface
 

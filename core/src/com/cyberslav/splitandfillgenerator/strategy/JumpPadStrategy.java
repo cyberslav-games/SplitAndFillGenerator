@@ -239,11 +239,6 @@ public class JumpPadStrategy implements FillStrategy
         return toGrid(get("V_WINDOW_SIZE") * 4.0);
     }
 
-    @Override public double getUseProbability() throws MapGeneratorException
-    {
-        return get("JUMP_PAD_USE_PROB");
-    }
-
 
     // protected
 

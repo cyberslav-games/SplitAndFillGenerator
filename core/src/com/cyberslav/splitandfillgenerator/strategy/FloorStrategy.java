@@ -101,11 +101,6 @@ public class FloorStrategy implements FillStrategy
         return getTunnelHeight();
     }
 
-    @Override public double getUseProbability() throws MapGeneratorException
-    {
-        return 1.0;
-    }
-
 
     // private interface
     private void addPlatform(

@@ -373,18 +373,6 @@ public class SplitAndFillGenerator implements MapGenerator
 
 
     // TODO: убрать этот метод
-    private ArrayList<FillStrategy> chooseStrategies()
-    {
-        ArrayList<FillStrategy> strategies = new ArrayList<>();
-
-        for (FillStrategy strategy : _strategies.values())
-            if (MapRandom.getInstance().getNextDouble(0.0, 1.0) <= strategy.getUseProbability())
-                strategies.add(strategy);
-
-        return strategies;
-    }
-
-
     private boolean trySplitVariant(
             RegionTree regionNode,
             SplitVariant splitVariant,
@@ -408,7 +396,7 @@ public class SplitAndFillGenerator implements MapGenerator
 
         // try different exit strategies
 //        for (FillStrategy exitStrategy : _strategyRegistry)
-        for (FillStrategy exitStrategy : chooseStrategies())
+        for (FillStrategy exitStrategy : _strategies.values())
         {
             boolean exitRegionIsValid = regionIsValidForStrategy(
                     splitVariant._exitRect,
@@ -434,7 +422,7 @@ public class SplitAndFillGenerator implements MapGenerator
                     {
                         // in enter strategies
 //                        for (FillStrategy enterStrategy : _strategyRegistry)
-                        for (FillStrategy enterStrategy : chooseStrategies())
+                        for (FillStrategy enterStrategy : _strategies.values())
                         {
                             boolean canApply = canApplyStrategy(
                                     enterStrategy,
@@ -836,7 +824,7 @@ public class SplitAndFillGenerator implements MapGenerator
 
         ArrayList<FillStrategy> validStrategies = new ArrayList<>();
 
-        for (FillStrategy strategy : chooseStrategies() /*_strategyRegistry*/)
+        for (FillStrategy strategy : _strategies.values())
             if (canApplyStrategy(
                     strategy,
                     new DirectedRegion(

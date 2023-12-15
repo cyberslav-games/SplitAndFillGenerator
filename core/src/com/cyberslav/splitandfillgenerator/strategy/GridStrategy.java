@@ -176,11 +176,6 @@ public class GridStrategy implements FillStrategy
                 + PlatformGrid.getStartYPos();
     }
 
-    @Override public double getUseProbability() throws MapGeneratorException
-    {
-        return 1.0;
-    }
-
 
     // private interface
     private boolean tryBuild(
