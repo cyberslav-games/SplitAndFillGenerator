@@ -77,7 +77,7 @@ public class JumpPadStrategy implements FillStrategy
     }
 
 
-    @Override public Collection<DirectedPoint> fill(
+    @Override public DirectedPoint fill(
             DirectedRegion region,
             final Collection<MapComponent> components) throws MapGeneratorException
     {
@@ -88,7 +88,6 @@ public class JumpPadStrategy implements FillStrategy
         double jumpPadWidth = get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS");
 
         // create exit point
-        ArrayList<DirectedPoint> exitPoints = new ArrayList<>();
         DirectedPoint exitPoint = null;
         double heroWidth = get("PLAYER_WIDTH");
         boolean exitToRight;
@@ -113,8 +112,6 @@ public class JumpPadStrategy implements FillStrategy
             exitToRight = exitWindow.getDirection() == Point.Direction.Right;
             exitPoint = new DirectedPoint(rect, exitWindow.getDirection(), exitWindow.getEndPosition());
         }
-
-        exitPoints.add(exitPoint);
 
         // create component
         //.. create floor
@@ -147,7 +144,7 @@ public class JumpPadStrategy implements FillStrategy
                     floorPos,
                     components);
 
-            return exitPoints;
+            return exitPoint;
         }
 
         //.. create jump pad
@@ -222,7 +219,7 @@ public class JumpPadStrategy implements FillStrategy
         }
 
         // return exit point
-        return exitPoints;
+        return exitPoint;
     }
 
 

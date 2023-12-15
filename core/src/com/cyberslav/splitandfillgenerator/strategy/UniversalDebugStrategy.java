@@ -38,24 +38,19 @@ public class UniversalDebugStrategy implements FillStrategy
 
 
     // public interface
-    @Override public Collection<DirectedPoint> fill(
+    @Override public DirectedPoint fill(
             DirectedRegion region,
             final Collection<MapComponent> components
             ) throws MapGeneratorException
     {
-        ArrayList<DirectedPoint> exitPoints = new ArrayList<>();
-
         double position
                 = (region.getExitWindow().getStartPosition()
                 + region.getExitWindow().getEndPosition()) / 2;
 
-        exitPoints.add(
-                new DirectedPoint(
-                        region.getRect(),
-                        region.getExitWindow().getDirection(),
-                        WorldProperties.getInstance().bindToGrid(position)));
-
-        return exitPoints;
+        return new DirectedPoint(
+                region.getRect(),
+                region.getExitWindow().getDirection(),
+                WorldProperties.getInstance().bindToGrid(position));
     }
 
 

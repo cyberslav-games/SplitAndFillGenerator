@@ -92,7 +92,7 @@ public class GridStrategy implements FillStrategy
 
 
     // public interface
-    @Override public Collection<DirectedPoint> fill(
+    @Override public DirectedPoint fill(
             DirectedRegion region,
             final Collection<MapComponent> components) throws MapGeneratorException
     {
@@ -158,7 +158,7 @@ public class GridStrategy implements FillStrategy
             throw new MapGeneratorException("GridStrategy: can't fill region");
         }
 
-        return exitPoints;
+        return exitPoints.get(0);
     }
 
 

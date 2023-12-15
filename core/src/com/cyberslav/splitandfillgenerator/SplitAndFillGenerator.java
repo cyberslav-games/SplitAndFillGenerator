@@ -311,22 +311,13 @@ public class SplitAndFillGenerator implements MapGenerator
         }
 
         Collection<MapComponent> components = new ArrayList<>();
-        Collection<DirectedPoint> exitPoints = strategy.fill(
+        DirectedPoint exitPoint = strategy.fill(
                 region,
                 components);
 
         _mapComponents.addAll(components);
 
-        // find compatible exit point
-        ArrayList<DirectedPoint> mixedExitPoints = new ArrayList<>(exitPoints);
-        MapRandom.getInstance().doRandomSort(mixedExitPoints);
-        DirectedPoint exitPoint = null;
-
-        for (int pointNum = 0; pointNum < mixedExitPoints.size() && exitPoint == null; ++pointNum)
-            if (canEnter(mixedExitPoints.get(pointNum), region.getExitWindow()))
-                exitPoint = mixedExitPoints.get(pointNum);
-
-        if (exitPoint == null)
+        if (!canEnter(exitPoint, region.getExitWindow()))
         {
             System.out.println(strategy.getClass().getSimpleName());
             System.out.println(region.getRect());
@@ -342,10 +333,6 @@ public class SplitAndFillGenerator implements MapGenerator
                 new DebugRegionComponent(
                         region,
                         strategy.getName()
-//                        strategy.getClass().getSimpleName()
-//                                + "\n" + region.getRect().toString()
-//                                + "\n" + region.getEnterPoint().toString()
-//                                + "\n" + region.getExitWindow().toString()
                         ));
     }
 

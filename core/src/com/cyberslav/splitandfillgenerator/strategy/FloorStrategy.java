@@ -45,7 +45,7 @@ public class FloorStrategy implements FillStrategy
 
 
     // public interface
-    @Override public Collection<DirectedPoint> fill(
+    @Override public DirectedPoint fill(
             DirectedRegion region,
             final Collection<MapComponent> components) throws MapGeneratorException
     {
@@ -81,13 +81,10 @@ public class FloorStrategy implements FillStrategy
                         toGrid(floorPosition))));
 
         // return exit point
-        ArrayList<DirectedPoint> exitPoints = new ArrayList<>();
-        exitPoints.add(new DirectedPoint(
+        return new DirectedPoint(
                 exitWindow.getRect(),
                 exitWindow.getDirection(),
-                exitWindow.getEndPosition()));
-
-        return exitPoints;
+                exitWindow.getEndPosition());
     }
 
 

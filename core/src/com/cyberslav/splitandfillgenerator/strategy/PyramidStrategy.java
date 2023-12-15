@@ -70,14 +70,13 @@ public class PyramidStrategy implements FillStrategy
     }
 
 
-    @Override public Collection<DirectedPoint> fill(
+    @Override public DirectedPoint fill(
             DirectedRegion region,
             final Collection<MapComponent> components) throws MapGeneratorException
     {
         Rectangle rect = region.getRect();
         DirectedPoint enterPoint = region.getEnterPoint();
         DirectedWindow exitWindow = region.getExitWindow();
-        ArrayList<DirectedPoint> exitPoints = new ArrayList<>();
 
         // choose exit point
         DirectedPoint mainExitPoint;
@@ -102,8 +101,6 @@ public class PyramidStrategy implements FillStrategy
             mainExitPoint = new DirectedPoint(rect, exitWindow.getDirection(), exitPos);
         }
 
-        exitPoints.add(mainExitPoint);
-
         // create vertex point
         Point rawVertex = mainExitPoint.toLocalPoint(false);
         double vertexX = toGrid(rawVertex.getX());
@@ -119,7 +116,7 @@ public class PyramidStrategy implements FillStrategy
                     rect.getHeight(),
                     components);
 
-            return exitPoints;
+            return mainExitPoint;
         }
 
         if (region.getExitWindow().getDirection() == Point.Direction.Up)
@@ -245,7 +242,7 @@ public class PyramidStrategy implements FillStrategy
                     components);
         }
 
-        return exitPoints;
+        return mainExitPoint;
     }
 
 

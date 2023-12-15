@@ -14,7 +14,7 @@ public interface FillStrategy
             Rectangle rect,
             DirectedWindow exitWindow) throws MapGeneratorException;
 
-    Collection<DirectedPoint> fill(
+    DirectedPoint fill(
             DirectedRegion region,
             final Collection<MapComponent> components) throws MapGeneratorException;
 
