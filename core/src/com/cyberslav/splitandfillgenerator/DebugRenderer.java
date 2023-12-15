@@ -307,26 +307,23 @@ public class DebugRenderer
     private boolean _pathEnabled = false;
     private DirectedRegion _lastRegion = null;
 
-    //.. cyan theme
-    private final Color _backgroundColor = new Color(0.1f, 0.1f, 0.1f, 1.0f);
-    private final Color _gridColor = new Color(0.12f, 0.12f, 0.12f, 1.0f);
-    private final Color _platformLineColor = new Color(0.3f, 0.8f, 1.0f, 1.0f);
-    private final Color _platformFillColor = new Color(0.3f, 0.8f, 1.0f, 0.3f);
+    //.. light theme
+    private final Color _backgroundColor = new Color(0.16f, 0.16f, 0.16f, 1.0f);
+    private final Color _gridColor = new Color(0.2f, 0.2f, 0.2f, 1.0f);
+    private final Color _platformLineColor = new Color(0x7dd3ffff);
+    private final Color _platformFillColor = new Color(0x7dd3ff77);
     private final Color _jumpPudColor = Color.CORAL;
-//    private final Color _jumpPudColor = Color.PURPLE;
-//    private final Color _spawnRegionColor = Color.CORAL;
     private final Color _spawnRegionColor = Color.GRAY;
-//    private final Color _debugRegionColor = Color.ORANGE;
-    private final Color _debugRegionColor = new Color(0x96661bff);
+    private final Color _debugRegionColor = new Color(0xeca12bff);
     private final Color _pathColor = Color.LIME;
 
-    //.. gray theme
-//    private final Color _backgroundColor = new Color(0x2b2b2bff);
-//    private final Color _platformLineColor = Color.LIGHT_GRAY;
-//    private final Color _platformFillColor = Color.GRAY;
-
-    //.. white theme
-//    private final Color _backgroundColor = Color.WHITE;
-//    private final Color _platformLineColor = Color.DARK_GRAY;
-//    private final Color _platformFillColor = Color.LIGHT_GRAY;
+    //.. dark theme
+//    private final Color _backgroundColor = new Color(0.1f, 0.1f, 0.1f, 1.0f);
+//    private final Color _gridColor = new Color(0.12f, 0.12f, 0.12f, 1.0f);
+//    private final Color _platformLineColor = new Color(0.3f, 0.8f, 1.0f, 1.0f);
+//    private final Color _platformFillColor = new Color(0.3f, 0.8f, 1.0f, 0.3f);
+//    private final Color _jumpPudColor = Color.CORAL;
+//    private final Color _spawnRegionColor = Color.GRAY;
+//    private final Color _debugRegionColor = new Color(0x96661bff);
+//    private final Color _pathColor = Color.LIME;
 }

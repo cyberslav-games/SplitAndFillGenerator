@@ -312,8 +312,8 @@ public class MainScreen implements Screen, InputProcessor
                 minExitSize + (exitSideSize - (exitStart + minExitSize)) * _exitSizeSlider.getValue());
 
         Rectangle rect = new Rectangle(
-                2.0 * getStep(),
-                2.0 * getStep(),
+                toGrid(_margin * 2),
+                toGrid(_margin * 2),
                 roomWidth,
                 roomHeight);
 
