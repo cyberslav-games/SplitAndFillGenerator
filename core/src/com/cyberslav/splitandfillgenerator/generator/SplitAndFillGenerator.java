@@ -22,7 +22,7 @@ public class SplitAndFillGenerator implements MapGenerator
     {
         Pyramid,
         Grid,
-        JumpPud,
+        JumpPad,
     };
 
 
@@ -32,31 +32,11 @@ public class SplitAndFillGenerator implements MapGenerator
         // create strategies
         setStrategyEnabled(StrategyId.Pyramid, true);
         setStrategyEnabled(StrategyId.Grid, true);
-        setStrategyEnabled(StrategyId.JumpPud, true);
-
-//        _strategyRegistry.add(new FloorStrategy());
-//        _strategyRegistry.add(new GridStrategy());
-//        _strategyRegistry.add(new PyramidStrategy());
-//        _strategyRegistry.add(new JumpPadStrategy());
-//        _strategyRegistry.add(new PlatformTreeStrategy());
+        setStrategyEnabled(StrategyId.JumpPad, true);
 
         // calculate min strategy size
         _minStrategyHeight = get("GRID_STEP") * get("MIN_REGION_HEIGHT_CELLS");
         _minStrategyWidth = get("GRID_STEP") * get("MIN_REGION_WIDTH_CELLS");
-
-//        for (FillStrategy strategy : _strategyRegistry)
-//        {
-//            _minStrategyHeight = Math.min(_minStrategyHeight, strategy.getMinHeight());
-//            _minStrategyWidth = Math.min(_minStrategyWidth, strategy.getMinWidth());
-//        }
-//
-//        _minStrategyHeight = Math.max(
-//                _minStrategyHeight,
-//                get("GRID_STEP") * get("MIN_REGION_HEIGHT_CELLS"));
-//
-//        _minStrategyWidth = Math.max(
-//                _minStrategyWidth,
-//                get("GRID_STEP") * get("MIN_REGION_WIDTH_CELLS"));
     }
 
 
@@ -74,7 +54,7 @@ public class SplitAndFillGenerator implements MapGenerator
             {
                 case Pyramid: _strategies.put(StrategyId.Pyramid, new PyramidStrategy()); break;
                 case Grid: _strategies.put(StrategyId.Grid, new GridStrategy()); break;
-                case JumpPud: _strategies.put(StrategyId.JumpPud, new JumpPadStrategy()); break;
+                case JumpPad: _strategies.put(StrategyId.JumpPad, new JumpPadStrategy()); break;
             }
         }
         else

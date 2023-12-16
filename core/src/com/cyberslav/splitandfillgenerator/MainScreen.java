@@ -129,7 +129,7 @@ public class MainScreen implements Screen, InputProcessor
         final Table strategyTable = addSectionTable(table, "Strategies");
         _pyramidCheckBox = addCheckBox(strategyTable, "Pyramid", true, null);
         _gridCheckBox = addCheckBox(strategyTable, "Grid", true, null);
-        _jumpPudCheckBox = addCheckBox(strategyTable, "Jump Pud", true, null);
+        _jumpPadCheckBox = addCheckBox(strategyTable, "Jump Pad", true, null);
 
         // generate level
         generate();
@@ -246,7 +246,7 @@ public class MainScreen implements Screen, InputProcessor
     private TextField addDoubleField(Table parentTable, String name, double value)
     {
         TextField field = new TextField(Double.toString(value), _skin);
-        field.setTextFieldFilter(_intFilter);
+        field.setTextFieldFilter(_doubleFilter);
 
         addWidget(parentTable, name, field);
 
@@ -286,7 +286,7 @@ public class MainScreen implements Screen, InputProcessor
         // strategies
         generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.Pyramid, _pyramidCheckBox.isChecked());
         generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.Grid, _gridCheckBox.isChecked());
-        generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.JumpPud, _jumpPudCheckBox.isChecked());
+        generator.setStrategyEnabled(SplitAndFillGenerator.StrategyId.JumpPad, _jumpPadCheckBox.isChecked());
 
         // room params
         final double roomWidth = toGrid(Integer.parseInt(_widthField.getText()));
@@ -410,5 +410,5 @@ public class MainScreen implements Screen, InputProcessor
     private final Slider _exitSizeSlider;
     private final CheckBox _pyramidCheckBox;
     private final CheckBox _gridCheckBox;
-    private final CheckBox _jumpPudCheckBox;
+    private final CheckBox _jumpPadCheckBox;
 }

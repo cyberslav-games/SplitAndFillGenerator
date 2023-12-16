@@ -16,7 +16,7 @@ public class JumpPadStrategy implements FillStrategy
     // public
     @Override public String getName()
     {
-        return "JumpPud";
+        return "JumpPad";
     }
 
 

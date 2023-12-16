@@ -85,7 +85,7 @@ public class DebugRenderer
             }
             else if (component instanceof JumpPadComponent)
             {
-                drawJumpPud((JumpPadComponent)component);
+                drawJumpPad((JumpPadComponent)component);
             }
             else if (component instanceof SpawnRegionComponent)
             {
@@ -177,14 +177,14 @@ public class DebugRenderer
     }
 
 
-    private void drawJumpPud(JumpPadComponent component)
+    private void drawJumpPad(JumpPadComponent component)
     {
         if (_mode != RenderMode.Line)
             return;
 
         drawRect(
                 component.getRectangle(),
-                _jumpPudColor,
+                _jumpPadColor,
                 null,
                 2.0f);
 
@@ -198,7 +198,7 @@ public class DebugRenderer
                 centerX,
                 startY + height * 0.25,
                 (float)component.getRectangle().getWidth() * 0.4,
-                _jumpPudColor
+                _jumpPadColor
                 );
     }
 
@@ -312,7 +312,7 @@ public class DebugRenderer
 //    private final Color _gridColor = new Color(0.2f, 0.2f, 0.2f, 1.0f);
 //    private final Color _platformLineColor = new Color(0x7dd3ffff);
 //    private final Color _platformFillColor = new Color(0x7dd3ff77);
-//    private final Color _jumpPudColor = Color.CORAL;
+//    private final Color _jumpPadColor = Color.CORAL;
 //    private final Color _spawnRegionColor = Color.GRAY;
 //    private final Color _debugRegionColor = new Color(0xeca12bff);
 //    private final Color _pathColor = Color.LIME;
@@ -322,7 +322,7 @@ public class DebugRenderer
     private final Color _gridColor = new Color(0.12f, 0.12f, 0.12f, 1.0f);
     private final Color _platformLineColor = new Color(0.3f, 0.8f, 1.0f, 1.0f);
     private final Color _platformFillColor = new Color(0.3f, 0.8f, 1.0f, 0.3f);
-    private final Color _jumpPudColor = Color.CORAL;
+    private final Color _jumpPadColor = Color.CORAL;
     private final Color _spawnRegionColor = Color.GRAY;
     private final Color _debugRegionColor = new Color(0x96661bff);
     private final Color _pathColor = Color.LIME;
