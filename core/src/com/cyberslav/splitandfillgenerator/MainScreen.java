@@ -333,7 +333,7 @@ public class MainScreen implements Screen, InputProcessor
 
         if (generator.canGenerateRegion(region))
         {
-            for (int tryNum = 0; tryNum < 8 && _components == null; ++tryNum)
+            for (int tryNum = 0; tryNum < 4 && _components == null; ++tryNum)
             {
                 try
                 {

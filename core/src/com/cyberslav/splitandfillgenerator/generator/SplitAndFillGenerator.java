@@ -102,78 +102,6 @@ public class SplitAndFillGenerator implements MapGenerator
     }
 
 
-
-    public static boolean canEnter(
-            DirectedPoint enterPoint,
-            DirectedWindow enterWindow) throws MapGeneratorException
-    {
-        if (enterPoint.getRect() != enterWindow.getRect())
-            throw new MapGeneratorException("canEnter: try to test window from another rectangle");
-
-        if (enterPoint.getDirection() != enterWindow.getDirection())
-            return false;
-
-        double pos = enterPoint.getPosition();
-        double start = enterWindow.getStartPosition();
-        double end = enterWindow.getEndPosition();
-        double width = WorldProperties.getInstance().get("PLAYER_WIDTH");
-        double height = WorldProperties.getInstance().get("V_WINDOW_SIZE"); //"PLAYER_HEIGHT");
-
-        if (enterWindow.isOnHorizontalEdge())
-            return start <= pos && pos <= end - width;
-        else
-//            return start <= pos && pos <= end - height;   // TODO: !!!
-            return start + height <= pos && pos <= end;
-    }
-
-
-    public static boolean regionIsValidForStrategy(
-            Rectangle rect,
-            DirectedWindow exitWindow,
-            FillStrategy strategy) throws MapGeneratorException
-    {
-        // check that player can move through exit window
-        if (!canEnter(
-                new DirectedPoint(
-                        exitWindow.getRect(),
-                        exitWindow.getDirection(),
-                        exitWindow.isOnHorizontalEdge()
-                                ? exitWindow.getStartPosition()
-                                : exitWindow.getEndPosition()),
-                exitWindow))
-            return false;
-
-        // check that rectangle has valid size
-//        if (rect.getObjectWidth() < strategy.getMinWidth()
-//                || rect.getHeight() < strategy.getMinHeight())
-//            return false;
-//
-//        return true;
-
-        return strategy.getMinWidth() <= rect.getWidth()
-                && strategy.getMinHeight() <= rect.getHeight();
-    }
-
-
-    public static boolean canApplyStrategy(
-            FillStrategy strategy,
-            DirectedRegion region) throws MapGeneratorException
-    {
-        if (!regionIsValidForStrategy(region.getRect(), region.getExitWindow(), strategy))
-            return false;
-
-        Collection<DirectedWindow> enterWindows
-                = strategy.tryFill(region.getRect(), region.getExitWindow());
-
-        // check if there is enter window that covers enter position
-        for (DirectedWindow enterWindow : enterWindows)
-            if (canEnter(region.getEnterPoint(), enterWindow))
-                return true;
-
-        return false;
-    }
-
-
     // </editor-fold>
 
     // private interface
@@ -249,6 +177,70 @@ public class SplitAndFillGenerator implements MapGenerator
 
 
     // <editor-fold desc="main">
+
+    private static boolean canEnter(
+            DirectedPoint enterPoint,
+            DirectedWindow enterWindow) throws MapGeneratorException
+    {
+        if (enterPoint.getRect() != enterWindow.getRect())
+            throw new MapGeneratorException("canEnter: try to test window from another rectangle");
+
+        if (enterPoint.getDirection() != enterWindow.getDirection())
+            return false;
+
+        double pos = enterPoint.getPosition();
+        double start = enterWindow.getStartPosition();
+        double end = enterWindow.getEndPosition();
+        double width = WorldProperties.getInstance().get("PLAYER_WIDTH");
+        double height = WorldProperties.getInstance().get("V_WINDOW_SIZE");
+
+        if (enterWindow.isOnHorizontalEdge())
+            return start <= pos && pos <= end - width;
+        else
+            return start + height <= pos && pos <= end;
+    }
+
+
+    private static boolean regionIsValidForStrategy(
+            Rectangle rect,
+            DirectedWindow exitWindow,
+            FillStrategy strategy) throws MapGeneratorException
+    {
+        // check that player can move through exit window
+        if (!canEnter(
+                new DirectedPoint(
+                        exitWindow.getRect(),
+                        exitWindow.getDirection(),
+                        exitWindow.isOnHorizontalEdge()
+                                ? exitWindow.getStartPosition()
+                                : exitWindow.getEndPosition()),
+                exitWindow))
+            return false;
+
+        // check that rectangle has valid size
+        return strategy.getMinWidth() <= rect.getWidth()
+                && strategy.getMinHeight() <= rect.getHeight();
+    }
+
+
+    private static boolean canApplyStrategy(
+            FillStrategy strategy,
+            DirectedRegion region) throws MapGeneratorException
+    {
+        if (!regionIsValidForStrategy(region.getRect(), region.getExitWindow(), strategy))
+            return false;
+
+        Collection<DirectedWindow> enterWindows
+                = strategy.tryFill(region.getRect(), region.getExitWindow());
+
+        // check if there is enter window that covers enter position
+        for (DirectedWindow enterWindow : enterWindows)
+            if (canEnter(region.getEnterPoint(), enterWindow))
+                return true;
+
+        return false;
+    }
+
 
     private FillStrategy findInitStrategy(
             DirectedRegion region) throws MapGeneratorException
@@ -332,9 +324,6 @@ public class SplitAndFillGenerator implements MapGenerator
             RegionTree regionNode,
             int debugPrintLevel) throws MapGeneratorException
     {
-        DirectedPoint enterPoint = regionNode._region.getEnterPoint();
-        DirectedWindow exitWindow = regionNode._region.getExitWindow();
-
         List<SplitVariant> variants = getSplitVariants(regionNode._region);
 
         for (SplitVariant variant : variants)
@@ -345,7 +334,6 @@ public class SplitAndFillGenerator implements MapGenerator
     }
 
 
-    // TODO: убрать этот метод
     private boolean trySplitVariant(
             RegionTree regionNode,
             SplitVariant splitVariant,
@@ -368,7 +356,6 @@ public class SplitAndFillGenerator implements MapGenerator
         ArrayList<StrategyPair> validPairs = new ArrayList<>();
 
         // try different exit strategies
-//        for (FillStrategy exitStrategy : _strategyRegistry)
         for (FillStrategy exitStrategy : _strategies.values())
         {
             boolean exitRegionIsValid = regionIsValidForStrategy(
@@ -376,33 +363,34 @@ public class SplitAndFillGenerator implements MapGenerator
                     localExitWindow,
                     exitStrategy);
 
-            Collection<DirectedWindow> exitCompEnterWindows = exitRegionIsValid
+            Collection<DirectedWindow> enterWindows = exitRegionIsValid
                     ? exitStrategy.tryFill(splitVariant._exitRect, localExitWindow)
                     : new ArrayList<DirectedWindow>();
 
             // for each possible enter window of exit strategy
             // try to find enter strategy, using this window as exit window
-            for (DirectedWindow exitCompEnterWindow : exitCompEnterWindows)
+            for (DirectedWindow enterWindow : enterWindows)
             {
                 // ignore windows that has unsuitable direction
-                if (exitCompEnterWindow.getDirection() == splitVariant._traverseDirection)
+                if (enterWindow.getDirection() == splitVariant._traverseDirection)
                 {
-                    DirectedWindow traverseWindow = exitCompEnterWindow.toAnotherRect(splitVariant._enterRect);
+                    DirectedWindow traverseWindow = enterWindow.toAnotherRect(splitVariant._enterRect);
 
                     if (traverseWindow != null
                             && traverseWindow.getDirection()
                                 != Point.getOppositeDirection(localExitWindow.getDirection()))
                     {
+                        DirectedRegion enterSubregion = new DirectedRegion(
+                                splitVariant._enterRect,
+                                regionNode._region.getEnterPoint().toAnotherRect(splitVariant._enterRect),
+                                traverseWindow);
+
                         // in enter strategies
-//                        for (FillStrategy enterStrategy : _strategyRegistry)
                         for (FillStrategy enterStrategy : _strategies.values())
                         {
                             boolean canApply = canApplyStrategy(
                                     enterStrategy,
-                                    new DirectedRegion(
-                                            splitVariant._enterRect,
-                                            regionNode._region.getEnterPoint().toAnotherRect(splitVariant._enterRect),
-                                            traverseWindow));
+                                    enterSubregion);
 
                             if (canApply)
                                 validPairs.add(new StrategyPair(
@@ -465,43 +453,28 @@ public class SplitAndFillGenerator implements MapGenerator
     {
         ArrayList<SplitVariant> variants = new ArrayList<>();
 
-        final double GRID_STEP = WorldProperties.getInstance().get("GRID_STEP");
-
-        final Point MIN_STRATEGY_SIZE = new Point(
-                getMinStrategyWidth(),
-                getMinStrategyHeight());
-
         // vertical split
-        //... make common vertical range
-        double verticalWindowSize = get("V_WINDOW_SIZE");
-        double verticalRangeStart = MIN_STRATEGY_SIZE.getY();
-        double verticalRangeEnd = region.getRect().getHeight() - MIN_STRATEGY_SIZE.getY();
-
-        //if enter point is on vertical side try split below and above enter position
-        if (Point.isHorizontalDirection(region.getEnterPoint().getDirection()))
+        //.. if enter point is on vertical side try split below and above enter position
+        if (!region.getEnterPoint().isOnHorizontalEdge())
         {
-            // try split above
-            double firstVertRangeStart = verticalRangeStart;
-            double firstVertRangeEnd = region.getEnterPoint().getPosition() - verticalWindowSize; //PLAYER_SIZE.getY();
-            firstVertRangeEnd = Math.min(firstVertRangeEnd, verticalRangeEnd);
+            double verticalWindowSize = get("V_WINDOW_SIZE");
 
+            // try split above enter
             addSplitInRange(
                     variants,
                     region,
-                    firstVertRangeStart,
-                    firstVertRangeEnd,
-                    false);
+                    0,
+                    region.getEnterPoint().getPosition() - verticalWindowSize,
+                    false,
+                    true);
 
-            // try split below
-            double secondVertRangeStart = region.getEnterPoint().getPosition() + get("BORDER_SIZE");
-            secondVertRangeStart = Math.max(secondVertRangeStart, verticalRangeStart);
-            double secondVertRangeEnd = verticalRangeEnd;
-
+            // try split below enter
             addSplitInRange(
                     variants,
                     region,
-                    secondVertRangeStart,
-                    secondVertRangeEnd,
+                    region.getEnterPoint().getPosition() + get("BORDER_SIZE"),
+                    region.getRect().getHeight(),
+                    false,
                     false);
         }
         else
@@ -509,56 +482,45 @@ public class SplitAndFillGenerator implements MapGenerator
             addSplitInRange(
                     variants,
                     region,
-                    verticalRangeStart,
-                    verticalRangeEnd,
-                    false);
+                    0,
+                    region.getRect().getHeight(),
+                    false,
+                    region.getEnterPoint().getDirection() == Point.Direction.Up);
         }
 
         // horizontal split
-        //... make common horizontal range
-        double horizontalRangeStart = MIN_STRATEGY_SIZE.getX();
-        double horizontalRangeEnd = region.getRect().getWidth() - MIN_STRATEGY_SIZE.getX();
-
-        // if enter point is on horizontal side try split left and right from enter position
-        if (!Point.isHorizontalDirection(region.getEnterPoint().getDirection()))
+        //.. if enter point is on horizontal side try split left and right from enter position
+        if (region.getEnterPoint().isOnHorizontalEdge())
         {
             final double DISPLACEMENT = toGrid(get("H_WINDOW_DISPLACEMENT"));
 
-            // try split left
-            double firstHorizRangeStart = horizontalRangeStart;
-            double firstHorizRangeEnd = region.getEnterPoint().getPosition() - DISPLACEMENT;
-            firstHorizRangeEnd = Math.min(firstHorizRangeEnd, horizontalRangeEnd);
-
+            // try split left from enter
             addSplitInRange(
                     variants,
                     region,
-                    firstHorizRangeStart,
-                    firstHorizRangeEnd,
+                    0,
+                    region.getEnterPoint().getPosition() - DISPLACEMENT,
+                    true,
                     true);
 
-            // try split right
-            double secondHorizRangeStart
-                    = region.getEnterPoint().getPosition()
-                    + toGrid(get("PLAYER_WIDTH"))
-                    + DISPLACEMENT;
-            secondHorizRangeStart = Math.max(secondHorizRangeStart, horizontalRangeStart);
-            double secondHorizRangeEnd = horizontalRangeEnd;
-
+            // try split right from enter
             addSplitInRange(
                     variants,
                     region,
-                    secondHorizRangeStart,
-                    secondHorizRangeEnd,
-                    true);
+                    region.getEnterPoint().getPosition() + get("PLAYER_WIDTH") + DISPLACEMENT,
+                    region.getRect().getWidth(),
+                    true,
+                    false);
         }
         else
         {
             addSplitInRange(
                     variants,
                     region,
-                    horizontalRangeStart,
-                    horizontalRangeEnd,
-                    true);
+                    0,
+                    region.getRect().getWidth(),
+                    true,
+                    region.getEnterPoint().getDirection() == Point.Direction.Left);
         }
 
         // do random sort
@@ -576,7 +538,6 @@ public class SplitAndFillGenerator implements MapGenerator
                 weights.add(verticalWeight);
 
         doRandomWeighedSort(variants, weights);
-        //doRandomSort(variants);
 
         return variants;
     }
@@ -587,38 +548,35 @@ public class SplitAndFillGenerator implements MapGenerator
             DirectedRegion region,
             double rangeStart,
             double rangeEnd,
-            boolean isHorizontal) throws MapGeneratorException
+            boolean isHorizontal,
+            boolean exitIsFirst) throws MapGeneratorException
     {
-        double rangeStartB = WorldProperties.getInstance().bindToGrid(rangeStart);
-        double rangeEndB = WorldProperties.getInstance().bindToGrid(rangeEnd);
+        // fix min side size
+        final double minSideSize = isHorizontal ? getMinStrategyWidth() : getMinStrategyHeight();
+        final double sideSize = region.getRect().getSizeProjection(isHorizontal);
 
-        if (canMakeSplitInRange(region, rangeStartB, rangeEndB, isHorizontal))
-            variants.add(makeSplitInRange(
-                    region,
-                    rangeStartB,
-                    rangeEndB,
-                    isHorizontal));
-    }
+        rangeStart = Math.max(rangeStart, minSideSize);
+        rangeEnd = Math.min(rangeEnd, sideSize - minSideSize);
 
+        // fix exit window size
+        final boolean exitIsVertical = !region.getExitWindow().isOnHorizontalEdge();
 
-    private boolean canMakeSplitInRange(
-            DirectedRegion region,
-            double rangeStart,
-            double rangeEnd,
-            boolean isHorizontal) throws MapGeneratorException
-    {
-        double MIN_WIDTH = getMinStrategyWidth();
-        double MIN_HEIGHT = getMinStrategyHeight();
-        double len = region.getRect().getSizeProjection(isHorizontal);
+        if (exitIsVertical == !isHorizontal)
+        {
+            final double exitStart = region.getExitWindow().getStartPosition();
+            final double exitEnd = region.getExitWindow().getEndPosition();
+            final double vWindowSize = get("V_WINDOW_SIZE");
+            final double hWindowSize = get("H_WINDOW_DISPLACEMENT") + get("PLAYER_WIDTH");
+            final double minExitSize = exitIsVertical ? vWindowSize : hWindowSize;
 
-        if (isHorizontal)
-            return rangeStart >= MIN_WIDTH
-                    && (len - rangeEnd) >= MIN_WIDTH
-                    && (toGridLess(rangeEnd) - toGridLess(rangeStart)) >= get("BORDER_SIZE");
-        else
-            return rangeStart >= MIN_HEIGHT
-                    && (len - rangeEnd) >= MIN_HEIGHT
-                    && (toGridLess(rangeEnd) - toGridLess(rangeStart)) >= get("BORDER_SIZE");
+            if (exitIsFirst)
+                rangeStart = Math.max(rangeStart, exitStart + minExitSize);
+            else
+                rangeEnd = Math.min(rangeEnd, exitEnd - minExitSize);
+        }
+
+        if (rangeEnd - rangeStart >= get("BORDER_SIZE"))
+            variants.add(makeSplitInRange(region, rangeStart, rangeEnd, isHorizontal));
     }
 
 
