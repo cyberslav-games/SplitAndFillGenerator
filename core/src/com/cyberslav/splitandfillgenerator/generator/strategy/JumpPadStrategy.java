@@ -53,7 +53,7 @@ public class JumpPadStrategy implements FillStrategy
         final boolean exitOnTop = exitDir == Point.Direction.Up;
         final double leftExitX = exitOnTop ? exitWindow.getStartPosition() : 0;
         final double rightExitX = exitOnTop ? exitWindow.getEndPosition() : rect.getWidth();
-        final double jumpPadWidth = get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS");
+        final double jumpPadWidth = get("JUMP_PAD_WIDTH");
         final double heroWidth = get("PLAYER_WIDTH");
         final double windowReserve = get("H_WINDOW_DISPLACEMENT");
         final double leftReserve = jumpPadWidth + windowReserve;
@@ -90,7 +90,7 @@ public class JumpPadStrategy implements FillStrategy
         DirectedPoint enterPoint = region.getEnterPoint();
         DirectedWindow exitWindow = region.getExitWindow();
 
-        double jumpPadWidth = get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS");
+        double jumpPadWidth = get("JUMP_PAD_WIDTH");
 
         // create exit point
         DirectedPoint exitPoint = null;
@@ -230,10 +230,7 @@ public class JumpPadStrategy implements FillStrategy
 
     @Override public double getMinWidth() throws MapGeneratorException
     {
-        return get("GRID_STEP") * get("JUMP_PAD_WIDTH_CELLS")
-                + 2.0 * get("PLAYER_WIDTH")
-                + get("H_WINDOW_DISPLACEMENT")
-                ;
+        return get("JUMP_PAD_WIDTH") + 2.0 * get("PLAYER_WIDTH") + get("H_WINDOW_DISPLACEMENT");
     }
 
     @Override public double getMinHeight() throws MapGeneratorException

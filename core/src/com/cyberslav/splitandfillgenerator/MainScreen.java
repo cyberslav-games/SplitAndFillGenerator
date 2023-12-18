@@ -123,7 +123,10 @@ public class MainScreen implements Screen, InputProcessor
         _gridStepField = addIntField(paramsTable, "grid step", (int)get("GRID_STEP"));
         _cutRateField = addDoubleField(paramsTable, "cut rate", get("CUT_RATE"));
         _splitRateField = addDoubleField(paramsTable, "split rate", get("SPLIT_DEVIATION_RATE"));
-        _minSquareField = addDoubleField(paramsTable, "min square", get("MIN_SPLIT_SQUARE") / getStep());
+        _minSquareField = addDoubleField(
+                paramsTable,
+                "min square",
+                get("MIN_REGION_SQUARE") / (getStep() * getStep()));
 
         //.. strategies
         final Table strategyTable = addSectionTable(table, "Strategies");
@@ -279,7 +282,7 @@ public class MainScreen implements Screen, InputProcessor
         WorldProperties.getInstance().update(Double.parseDouble(_gridStepField.getText()));
         set("CUT_RATE", Double.parseDouble(_cutRateField.getText()));
         set("SPLIT_DEVIATION_RATE", Double.parseDouble(_splitRateField.getText()));
-        set("MIN_SPLIT_SQUARE", getStep() * Double.parseDouble(_minSquareField.getText()));
+        set("MIN_REGION_SQUARE", getStep() * getStep() * Double.parseDouble(_minSquareField.getText()));
 
         final SplitAndFillGenerator generator = new SplitAndFillGenerator();
 

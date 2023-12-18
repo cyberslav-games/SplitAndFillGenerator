@@ -339,13 +339,6 @@ public class SplitAndFillGenerator implements MapGenerator
             SplitVariant splitVariant,
             int debugPrintLevel) throws MapGeneratorException
     {
-        // check parts square
-        final double MIN_SQUARE = get("MIN_SPLIT_SQUARE");
-
-        if (splitVariant._enterRect.getSquare() < MIN_SQUARE
-                || splitVariant._exitRect.getSquare() < MIN_SQUARE)
-            return false;
-
         // convert exit window to exit rect
         DirectedWindow localExitWindow = regionNode._region.getExitWindow().toAnotherRect(splitVariant._exitRect);
 
@@ -355,7 +348,7 @@ public class SplitAndFillGenerator implements MapGenerator
         // try regular split
         ArrayList<StrategyPair> validPairs = new ArrayList<>();
 
-        // try different exit strategies
+        // try exit strategies
         for (FillStrategy exitStrategy : _strategies.values())
         {
             boolean exitRegionIsValid = regionIsValidForStrategy(
@@ -548,26 +541,33 @@ public class SplitAndFillGenerator implements MapGenerator
             DirectedRegion region,
             double rangeStart,
             double rangeEnd,
-            boolean isHorizontal,
+            boolean isHorizontalSplit,
             boolean exitIsFirst) throws MapGeneratorException
     {
-        // fix min side size
-        final double minSideSize = isHorizontal ? getMinStrategyWidth() : getMinStrategyHeight();
-        final double sideSize = region.getRect().getSizeProjection(isHorizontal);
+        // limit range by min region side size
+        final double minSideSize = isHorizontalSplit ? getMinStrategyWidth() : getMinStrategyHeight();
+        final double sideSize = region.getRect().getSizeProjection(isHorizontalSplit);
 
         rangeStart = Math.max(rangeStart, minSideSize);
         rangeEnd = Math.min(rangeEnd, sideSize - minSideSize);
 
-        // fix exit window size
-        final boolean exitIsVertical = !region.getExitWindow().isOnHorizontalEdge();
+        // limit range by min square
+        final double anotherSideSize = region.getRect().getSizeProjection(!isHorizontalSplit);
+        double minSideSizeBySquare = get("MIN_REGION_SQUARE") / anotherSideSize;
 
-        if (exitIsVertical == !isHorizontal)
+        rangeStart = Math.max(rangeStart, minSideSizeBySquare);
+        rangeEnd = Math.min(rangeEnd, sideSize - minSideSizeBySquare);
+
+        // fix exit window size
+        final boolean exitIsHorizontal = region.getExitWindow().isOnHorizontalEdge();
+
+        if (exitIsHorizontal == isHorizontalSplit)
         {
             final double exitStart = region.getExitWindow().getStartPosition();
             final double exitEnd = region.getExitWindow().getEndPosition();
             final double vWindowSize = get("V_WINDOW_SIZE");
             final double hWindowSize = get("H_WINDOW_DISPLACEMENT") + get("PLAYER_WIDTH");
-            final double minExitSize = exitIsVertical ? vWindowSize : hWindowSize;
+            final double minExitSize = exitIsHorizontal ? hWindowSize : vWindowSize;
 
             if (exitIsFirst)
                 rangeStart = Math.max(rangeStart, exitStart + minExitSize);
@@ -576,7 +576,7 @@ public class SplitAndFillGenerator implements MapGenerator
         }
 
         if (rangeEnd - rangeStart >= get("BORDER_SIZE"))
-            variants.add(makeSplitInRange(region, rangeStart, rangeEnd, isHorizontal));
+            variants.add(makeSplitInRange(region, rangeStart, rangeEnd, isHorizontalSplit));
     }
 
 
@@ -584,87 +584,79 @@ public class SplitAndFillGenerator implements MapGenerator
             DirectedRegion region,
             double rangeStart,
             double rangeEnd,
-            boolean isHorizontal) throws MapGeneratorException
+            boolean isHorizontalSplit) throws MapGeneratorException
     {
-        final double BORDER_SIZE = get("BORDER_SIZE");
+        // cal split pos
+        final double borderSize = get("BORDER_SIZE");
+        double sideSize = region.getRect().getSizeProjection(isHorizontalSplit);
 
-        // calculate first part size
-//        double firstPartSize = rangeStart + _random.nextDouble() * (rangeEnd - rangeStart);
-        double fullSize = region.getRect().getSizeProjection(isHorizontal);
-        double anotherFullSize = region.getRect().getSizeProjection(!isHorizontal);
-        double strategySizeBorder = isHorizontal ? getMinStrategyWidth() : getMinStrategyHeight();
-        double squareBorder = get("MIN_SPLIT_SQUARE") / anotherFullSize;
-        double border = Math.max(strategySizeBorder, squareBorder);
-        double actualRangeStart = Math.max(rangeStart, border);
-        double actualRangeEnd = Math.min(rangeEnd, fullSize - border);
+        double splitPos = MapRandom.getInstance().getNextNormal(
+                sideSize / 2,
+                sideSize * get("SPLIT_DEVIATION_RATE"));
 
-        double firstPartSize = MapRandom.getInstance().getNextNormal(
-                fullSize / 2,
-                fullSize * get("SPLIT_DEVIATION_RATE"));
-        firstPartSize = Math.max(firstPartSize, actualRangeStart);
-        firstPartSize = Math.min(firstPartSize, actualRangeEnd);
-        firstPartSize = Math.min(firstPartSize, actualRangeEnd - BORDER_SIZE);
-        firstPartSize = WorldProperties.getInstance().bindToGrid(firstPartSize);
+        splitPos = Math.max(splitPos, rangeStart);
+        splitPos = Math.min(splitPos, rangeEnd - borderSize);
+        splitPos = WorldProperties.getInstance().bindToGrid(splitPos);
 
-        // create first & second subrectangle
-        Rectangle firstSubrect;
-        Rectangle secondSubrect;
+        // create first & second sub rectangle
+        Rectangle firstSubRect;
+        Rectangle secondSubRect;
         Rectangle rect = region.getRect();
 
-        if (isHorizontal)
+        if (isHorizontalSplit)
         {
-            firstSubrect = new Rectangle(
+            firstSubRect = new Rectangle(
                     rect.getX(),
                     rect.getY(),
-                    firstPartSize,
+                    splitPos,
                     rect.getHeight());
 
-            secondSubrect = new Rectangle(
-                    rect.getX() + firstPartSize + BORDER_SIZE,
+            secondSubRect = new Rectangle(
+                    rect.getX() + splitPos + borderSize,
                     rect.getY(),
-                    rect.getWidth() - firstPartSize - BORDER_SIZE,
+                    rect.getWidth() - splitPos - borderSize,
                     rect.getHeight());
         }
         else
         {
-            firstSubrect = new Rectangle(
+            firstSubRect = new Rectangle(
                     rect.getX(),
                     rect.getY(),
                     rect.getWidth(),
-                    firstPartSize);
+                    splitPos);
 
-            secondSubrect = new Rectangle(
+            secondSubRect = new Rectangle(
                     rect.getX(),
-                    rect.getY() + firstPartSize + BORDER_SIZE,
+                    rect.getY() + splitPos + borderSize,
                     rect.getWidth(),
-                    rect.getHeight() - firstPartSize - BORDER_SIZE);
+                    rect.getHeight() - splitPos - borderSize);
         }
 
-        // choose enter & exit subrectangle
+        // choose enter & exit sub rectangle
         Rectangle enterRect;
         Rectangle exitRect;
-        boolean enterPartIsFirst; // = region.getEnterPoint().getPosition() < firstPartSize;
+        boolean enterPartIsFirst; // = region.getEnterPoint().getPosition() < splitPos;
         Point.Direction enterDir = region.getEnterPoint().getDirection();
 
-        if (Point.isHorizontalDirection(enterDir) == !isHorizontal)
-            enterPartIsFirst = region.getEnterPoint().getPosition() < firstPartSize;
+        if (Point.isHorizontalDirection(enterDir) == !isHorizontalSplit)
+            enterPartIsFirst = region.getEnterPoint().getPosition() < splitPos;
         else
             enterPartIsFirst = enterDir == Point.Direction.Right || enterDir == Point.Direction.Down;
 
         if (enterPartIsFirst)
         {
-            enterRect = firstSubrect;
-            exitRect = secondSubrect;
+            enterRect = firstSubRect;
+            exitRect = secondSubRect;
         }
         else
         {
-            enterRect = secondSubrect;
-            exitRect = firstSubrect;
+            enterRect = secondSubRect;
+            exitRect = firstSubRect;
         }
 
         // determine traverse direction
         Point.Direction traverseDirection
-                = isHorizontal
+                = isHorizontalSplit
                 ? (enterPartIsFirst ? Point.Direction.Right : Point.Direction.Left)
                 : (enterPartIsFirst ? Point.Direction.Down : Point.Direction.Up);
 

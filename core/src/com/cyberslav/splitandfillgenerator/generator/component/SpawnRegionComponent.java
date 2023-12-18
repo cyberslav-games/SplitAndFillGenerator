@@ -25,17 +25,6 @@ public class SpawnRegionComponent extends RectangleComponent implements MapCompo
             double endPos,
             DirectedRegion region,
             DirectedPoint exitPoint,
-            final Collection<MapComponent> components) throws MapGeneratorException
-    {
-        addSpawnRegionInRange(startPos, endPos, region, exitPoint, get("SPAWN_REGION_HEIGHT"), components);
-    }
-
-
-    public static void addSpawnRegionInRange(
-            double startPos,
-            double endPos,
-            DirectedRegion region,
-            DirectedPoint exitPoint,
             double height,
             final Collection<MapComponent> components) throws MapGeneratorException
     {

@@ -37,26 +37,22 @@ public class WorldProperties
     public void update(double gridStep)
     {
         set("GRID_STEP", gridStep);
-        set("RAW_PLAYER_WIDTH", gridStep * 1.5);
-        set("RAW_PLAYER_HEIGHT", gridStep * 3);
         set("PLAYER_WIDTH", gridStep * 2);
         set("PLAYER_HEIGHT", gridStep * 3);
         set("JUMP_HEIGHT", gridStep * 4);
-        set("MIN_PLATFORM_WIDTH", gridStep * 2);
-        set("FLOOR_HEIGHT", gridStep * 1);
-        set("H_WINDOW_DISPLACEMENT", gridStep * 4);
-        set("V_WINDOW_SIZE", gridStep * 5);
-        set("TOP_PLATFORM_POS", gridStep * 3);
+        set("MIN_PLATFORM_WIDTH", get("PLAYER_WIDTH"));
+        set("H_WINDOW_DISPLACEMENT", 2.0 * get("PLAYER_WIDTH"));
+        set("V_WINDOW_SIZE", gridStep * 2 + get("PLAYER_HEIGHT"));
+        set("TOP_PLATFORM_POS", get("PLAYER_HEIGHT"));
         set("BORDER_SIZE", gridStep * 1);
         set("GRAVITY_FACTOR", gridStep * 140);
         set("RUN_SPEED", gridStep * 25);
-        set("MIN_SPLIT_SQUARE", gridStep * 320);
-        set("SPAWN_REGION_HEIGHT", gridStep * 3);
-        set("CUT_RATE", 0.02);
-        set("SPLIT_DEVIATION_RATE", 0.381966011);
         set("MIN_REGION_HEIGHT_CELLS", 7);
         set("MIN_REGION_WIDTH_CELLS", 8);
-        set("JUMP_PAD_WIDTH_CELLS", 2.0);
+        set("MIN_REGION_SQUARE", gridStep * gridStep * get("MIN_REGION_HEIGHT_CELLS") * get("MIN_REGION_WIDTH_CELLS"));
+        set("CUT_RATE", 0.02);
+        set("SPLIT_DEVIATION_RATE", 0.381966011);   // golden ratio or something like that. I don't remember
+        set("JUMP_PAD_WIDTH", get("PLAYER_WIDTH"));
     }
 
 
