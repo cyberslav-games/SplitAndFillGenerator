@@ -78,7 +78,6 @@ public class WorldProperties
 
     // data members
     private TreeMap<String, Double> _values = new TreeMap<>();
-//    private final Semaphore _mutex = new Semaphore(1);
 
     private static WorldProperties _instance;
 

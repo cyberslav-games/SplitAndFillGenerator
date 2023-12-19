@@ -123,10 +123,11 @@ public class MainScreen implements Screen, InputProcessor
         _gridStepField = addIntField(paramsTable, "grid step", (int)get("GRID_STEP"));
         _cutRateField = addDoubleField(paramsTable, "cut rate", get("CUT_RATE"));
         _splitRateField = addDoubleField(paramsTable, "split rate", get("SPLIT_DEVIATION_RATE"));
-        _minSquareField = addDoubleField(
+        _minSquareField = addIntField(
                 paramsTable,
                 "min square",
-                get("MIN_REGION_SQUARE") / (getStep() * getStep()));
+                (int)(get("MIN_REGION_SQUARE") / (getStep() * getStep()))
+                );
 
         //.. strategies
         final Table strategyTable = addSectionTable(table, "Strategies");

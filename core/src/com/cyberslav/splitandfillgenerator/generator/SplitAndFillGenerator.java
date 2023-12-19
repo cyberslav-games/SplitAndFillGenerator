@@ -669,7 +669,6 @@ public class SplitAndFillGenerator implements MapGenerator
     // <editor-fold desc="cut">
 
     private boolean tryCut(
-//            DirectedRegion region,
             RegionTree regionNode) throws MapGeneratorException
     {
         FillStrategy finalStrategy = null;
@@ -767,30 +766,29 @@ public class SplitAndFillGenerator implements MapGenerator
             DirectedRegion region,
             double cutRate) throws MapGeneratorException
     {
-        final Point MIN_STRATEGY_SIZE = new Point(
+        final Point minSideSize = new Point(
                 getMinStrategyWidth(),
                 getMinStrategyHeight());
 
-        final Point PLAYER_SIZE = new Point(
-                toGrid(get("PLAYER_WIDTH")),
-                get("V_WINDOW_SIZE"));
-
-        final double WINDOW_DISPLACEMENT = toGrid(get("H_WINDOW_DISPLACEMENT"));
+        final double vWindowSize = get("V_WINDOW_SIZE");
+        final double heroWight = get("PLAYER_WIDTH");
+        final double hWindowReserve = toGrid(get("H_WINDOW_DISPLACEMENT"));
+        final Point enterPos = region.getEnterPoint().toLocalPoint(true);
 
         ArrayList<CutVariant> variants = new ArrayList<>();
 
         Point.Direction exitDirection = region.getExitWindow().getDirection();
-        Point.Direction enterDirection = Point.getOppositeDirection(region.getEnterPoint().getDirection());
+        Point.Direction oppEnterDirection = Point.getOppositeDirection(region.getEnterPoint().getDirection());
 
         // try cut top part
-        if (Point.Direction.Up != exitDirection && Point.Direction.Up != enterDirection)
+        if (Point.Direction.Up != exitDirection && Point.Direction.Up != oppEnterDirection)
         {
             double cutSize = Math.min(
-                    region.getEnterPoint().toLocalPoint(true).getY() - PLAYER_SIZE.getY(),
-                    region.getRect().getHeight() - MIN_STRATEGY_SIZE.getY());
+                    enterPos.getY() - vWindowSize,
+                    region.getRect().getHeight() - minSideSize.getY());
 
             if (!region.getExitWindow().isOnHorizontalEdge())
-                cutSize = Math.min(cutSize, region.getExitWindow().getEndPosition() - PLAYER_SIZE.getY());
+                cutSize = Math.min(cutSize, region.getExitWindow().getEndPosition() - vWindowSize);
 
             addCutVariant(
                     variants,
@@ -801,16 +799,16 @@ public class SplitAndFillGenerator implements MapGenerator
         }
 
         // try cut bottom part
-        if (Point.Direction.Down != exitDirection && Point.Direction.Down != enterDirection)
+        if (Point.Direction.Down != exitDirection && Point.Direction.Down != oppEnterDirection)
         {
             double cutSize = Math.min(
-                    region.getRect().getHeight() - region.getEnterPoint().toLocalPoint(true).getY(),
-                    region.getRect().getHeight() - MIN_STRATEGY_SIZE.getY());
+                    region.getRect().getHeight() - enterPos.getY(),
+                    region.getRect().getHeight() - minSideSize.getY());
 
             if (!region.getExitWindow().isOnHorizontalEdge())
                 cutSize = Math.min(
                         cutSize,
-                        region.getRect().getHeight() - (region.getExitWindow().getStartPosition() + PLAYER_SIZE.getY()));
+                        region.getRect().getHeight() - (region.getExitWindow().getStartPosition() + vWindowSize));
 
             addCutVariant(
                     variants,
@@ -821,14 +819,14 @@ public class SplitAndFillGenerator implements MapGenerator
         }
 
         // try cut left part
-        if (Point.Direction.Left != exitDirection && Point.Direction.Left != enterDirection)
+        if (Point.Direction.Left != exitDirection && Point.Direction.Left != oppEnterDirection)
         {
             double cutSize = Math.min(
-                    region.getEnterPoint().toLocalPoint(true).getX() - WINDOW_DISPLACEMENT,
-                    region.getRect().getWidth() - MIN_STRATEGY_SIZE.getX());
+                    enterPos.getX() - hWindowReserve,
+                    region.getRect().getWidth() - minSideSize.getX());
 
             if (region.getExitWindow().isOnHorizontalEdge())
-                cutSize = Math.min(cutSize, region.getExitWindow().getEndPosition() - WINDOW_DISPLACEMENT);
+                cutSize = Math.min(cutSize, region.getExitWindow().getEndPosition() - hWindowReserve);
 
             addCutVariant(
                     variants,
@@ -839,22 +837,17 @@ public class SplitAndFillGenerator implements MapGenerator
         }
 
         // try cut right part
-        if (Point.Direction.Right != exitDirection && Point.Direction.Right != enterDirection)
+        if (Point.Direction.Right != exitDirection && Point.Direction.Right != oppEnterDirection)
         {
             double cutSize = Math.min(
-                    region.getRect().getWidth()
-                            - (region.getEnterPoint().toLocalPoint(true).getX()
-                                + toGrid(get("PLAYER_WIDTH"))
-                                + WINDOW_DISPLACEMENT),
-                    region.getRect().getWidth() - MIN_STRATEGY_SIZE.getX());
+                    region.getRect().getWidth() - (enterPos.getX() + heroWight + hWindowReserve),
+                    region.getRect().getWidth() - minSideSize.getX());
 
             if (region.getExitWindow().isOnHorizontalEdge())
                 cutSize = Math.min(
                         cutSize,
                         region.getRect().getWidth()
-                                - (region.getExitWindow().getStartPosition()
-                                    + toGrid(get("PLAYER_WIDTH"))
-                                    + WINDOW_DISPLACEMENT));
+                                - (region.getExitWindow().getStartPosition() + heroWight + hWindowReserve));
 
             addCutVariant(
                     variants,
@@ -886,12 +879,12 @@ public class SplitAndFillGenerator implements MapGenerator
             double maxCutSize,
             double cutRate) throws MapGeneratorException
     {
-        boolean isHorizontal = Point.isHorizontalDirection(direction);
-        boolean isPositive = Point.isPositiveDirection(direction);
-        double fullSize = rect.getSizeProjection(isHorizontal);
+        boolean isHorizontalCut = Point.isHorizontalDirection(direction);
+        boolean isPositiveDir = Point.isPositiveDirection(direction);
+        double sideSize = rect.getSizeProjection(isHorizontalCut);
         double deviation = Math.min(getMinStrategyHeight(), getMinStrategyWidth()) / 4;
 
-        double cutSize = MapRandom.getInstance().getNextNormal(fullSize * cutRate, deviation);
+        double cutSize = MapRandom.getInstance().getNextNormal(sideSize * cutRate, deviation);
         cutSize = Math.abs(cutSize);
         cutSize = toGrid(cutSize);
         cutSize = Math.min(cutSize, toGrid(maxCutSize));
@@ -901,11 +894,11 @@ public class SplitAndFillGenerator implements MapGenerator
 
         // create main rect
         Point mainRectSize = new Point(rect.getWidth(), rect.getHeight());
-        mainRectSize.setProjection(fullSize - cutSize, isHorizontal);
+        mainRectSize.setProjection(sideSize - cutSize, isHorizontalCut);
         Point mainRectPos = new Point(rect.getX(), rect.getY());
 
-        if (!isPositive)
-            mainRectPos.setProjection(mainRectPos.getProjection(isHorizontal) + cutSize, isHorizontal);
+        if (!isPositiveDir)
+            mainRectPos.setProjection(mainRectPos.getProjection(isHorizontalCut) + cutSize, isHorizontalCut);
 
         Rectangle mainRect = new Rectangle(
                 mainRectPos.getX(),
@@ -915,13 +908,13 @@ public class SplitAndFillGenerator implements MapGenerator
 
         // create cut rect
         Point cutRectSize = new Point(rect.getWidth(), rect.getHeight());
-        cutRectSize.setProjection(cutSize, isHorizontal);
+        cutRectSize.setProjection(cutSize, isHorizontalCut);
         Point cutRectPos = new Point(rect.getX(), rect.getY());
 
-        if (isPositive)
+        if (isPositiveDir)
             cutRectPos.setProjection(
-                    cutRectPos.getProjection(isHorizontal) + fullSize - cutSize,
-                    isHorizontal);
+                    cutRectPos.getProjection(isHorizontalCut) + sideSize - cutSize,
+                    isHorizontalCut);
 
         Rectangle cutRect = new Rectangle(
                 cutRectPos.getX(),
